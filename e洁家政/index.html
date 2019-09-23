@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" content="content">
+	<title>e洁家政</title>
+	<link rel="stylesheet" type="text/css" href="./css/common.css">
+	<link rel="stylesheet" type="text/css" href="./css/style.css">
+	<link rel="stylesheet" type="text/css" href="http://at.alicdn.com/t/font_1414708_fuwvos7n1fw.css">
+
+	<link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+	<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+	<script src="https://cdn.bootcss.com/popper.js/1.15.0/umd/popper.min.js"></script>	
+
+	<script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.js"></script>
+	<script src="./js/index.js"></script>
+
+</head>
+<body>
+
+	<div class="container-fluid big-box row" style="overflow-y: hidden;">
+		<div class="left_nav col-2 bg-info">
+			<div class="h5 text-center mb-5 mt-5 h1"><i class="iconfont icon-zhuye h1"></i>E洁家政</div>
+			<ul class="text-center">
+				<li class="py-3 border-bottom ">
+					<i class="iconfont icon-guke"></i>
+					<a href="javascript:void(0)" class="text-dark reboot" url="./pages/customer.html">顾客管理</a>
+				</li>
+				<li class="py-3 border-bottom">
+					<i class="iconfont icon-yuangong"></i>
+					<a href="javascript:void(0)" class="text-dark" url="./pages/waiter.html">员工管理</a>
+				</li>
+				<li class="py-3 border-bottom">
+					<i class="iconfont icon-icon-order"></i>
+					<a href="javascript:void(0)" class="text-dark"  url="./pages/order.html">订单管理</a>
+				</li>
+				<li class="py-3 border-bottom">
+					<i class="iconfont icon-chanpin"></i>
+					<a href="javascript:void(0)" class="text-dark" url="./pages/products.html">产品管理</a>
+				</li>
+				<li class="py-3 border-bottom ">
+					<i class="iconfont icon-dizhi"></i>
+					<a href="javascript:void(0)" class="text-dark reboot"  url="./pages/address.html">地址管理</a>
+				</li>
+				<li class="  py-3 border-bottom">
+					<i class="iconfont icon-lanmu"></i>
+					<a href="javascript:void(0)" class="text-dark reboot" url="./pages/category.html">栏目管理</a>
+				</li>
+				<li class="py-3 ">
+					<i class="iconfont icon-pinglun"></i>
+					<a href="javascript:void(0)" class="text-dark" url="./pages/comment.html">评价管理</a>
+				</li>
+			</ul>
+		</div>
+
+		<div class="right_content col">
+			<div class="left_top row bg-info py-3">
+				<form class="col-9 ml-5 ">
+					<input id="seaher" class="form-control text-center" type="search" name="seaher">
+				</form>
+				
+				<div id="login" class="dropdown ml-auto mr-5">
+  					<button class="btn btn-secondary dropdown-toggle bg-info border-0" type="button" id="dropdownMenuButton" data-toggle="dropdown">
+    					<i class="iconfont h4 icon-denglu"></i>
+  					</button>
+  					<div class="dropdown-menu bg-light">
+					    <a class="dropdown-item" href="#">登陆</a>
+					    <a class="dropdown-item" href="#">个人资料</a>
+					    <a class="dropdown-item" href="#"></a>
+  					</div>
+				</div>
+			</div>
+
+			<div class="right row">
+				<!-- 多余内容产生滚动条 -->
+				<div class="right_wrapper ml-2 bg-light" style="overflow-y:auto;max-height:700px">
+				<!-- 使用分页显示多余内容 -->
+				<!-- <div class="right_wrapper ml-2 bg-light" style="overflow-y:hidden;max-height:570px"> -->
+					
+					<div class="content"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+
+</body>
+</html>

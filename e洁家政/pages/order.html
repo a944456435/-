@@ -1,0 +1,244 @@
+<script>
+	// 函数声明和变量声明
+	var baseURL ="http://134.175.100.63:6677"
+
+	function initData(){
+		var url =baseURL+"/order/findAll"
+		$.get(url,function(response){
+			if (response.status===200) {
+				$("#order_tab tbody").empty();
+				response.data.forEach(function(item){
+					$(`<tr class="row text-center ">
+					<td class="col"><input type="checkbox" name="id" value="`+item.id+`"></td>
+					<td class="col">`+item.orderTime+`</td>
+					<td class="col">`+item.total+`</td>
+					<td class="col">`+item.customerId+`</td>
+					<td class="col">`+item.waiterId+`</td>
+					<td class="col">`+item.addressId+`</td>
+					<td class="col">
+						<a href="javascript:void(0)" class="btn_del"><i class="h4 iconfont icon-shanchu"></i></a>
+					</td>
+					</tr>`).appendTo("#order_tab tbody");
+				})
+			}else{
+				alert(response.message);
+			}
+		})
+	}
+
+	//点击添加按钮时模态框打开
+	$("#btn_add").click(function(){
+		$("#order_modal").modal("show")
+	})
+
+	//设置模态框关闭的方法
+	function closeModal(){
+		$("#order_modal").modal("hide")
+	}
+
+	//初始化加载顾客编号
+	function initCustomer(){
+		var url =baseURL+"/customer/findAll"
+		$.get(url,function(response){
+			if(response.status===200){
+				response.data.forEach(function(item){
+				$(`<option value="`+item.id+`">`+item.id+`</option>`).appendTo("#selectCustomer");
+
+				})
+			}
+		})
+	}
+
+	//初始化加载员工编号
+	function initWaiter(){
+		var url =baseURL+"/waiter/findAll"
+		$.get(url,function(response){
+			if(response.status===200){
+				response.data.forEach(function(item){
+				$(`<option value="`+item.id+`">`+item.id+`</option>`).appendTo("#selectWaiter");
+
+				})
+			}
+		})
+	}
+
+	//初始化加载员工编号
+	function initAddress(){
+		var url =baseURL+"/address/findAll"
+		$.get(url,function(response){
+			if(response.status===200){
+				response.data.forEach(function(item){
+				$(`<option value="`+item.id+`">`+item.id+`</option>`).appendTo("#selectAddress");
+
+				})
+			}
+		})
+	}
+
+	// 加载文档后执行	
+	$(function(){
+		//数据初始化
+		initData();
+		initCustomer();
+		initWaiter();
+		initAddress();
+
+		//为删除绑定事件
+		//使用事件代理绑定后面的出现的事件
+		$("#order_tab tbody").on("click","a",function(event){
+			if(this.className=="btn_del"){
+				var url=baseURL+"/order/deleteById"
+				var id={id:$(this).parents("tr").find("input[type=checkbox]").val()};
+				$.get(url,id,function(response){
+					if (response.status===200) {
+						initData();
+					}else{
+						alert(response.message);
+					}
+				})
+			}
+
+		})
+
+		//为提交保存按钮绑定事件
+		$("#submitOrder").click(function(){
+			var orderTime =$("#order_modal .modal-body input[name=orderTime]").val();
+			var total =$("#order_modal .modal-body input[name=total]").val();
+			var customerId =$("#order_modal .modal-body input[name=customerId]").val();
+			var waiterId =$("#order_modal .modal-body input[name=waiterId]").val();
+			var addressId =$("#order_modal .modal-body input[name=addressId]").val();
+			var param ={orderTime:orderTime,total:total,customerId:customerId,waiterId:waiterId,addressId:addressId};
+
+			var url=baseURL+"/order/save"
+			$.post(url,param,function(response){
+				if(response.status===200){
+					initData();
+				}else{
+					alert(response.message);
+				}
+			})
+		})
+
+		//为批量删除绑定事件
+		$("#batch_del").click(function(){
+			//获取勾选的复选框
+			//默认选中不是selected,而是checked
+			var options=$("#order_tab input[type=checkbox]:checked").map(function(index,item){
+				return item.value;
+			}).toArray();
+			var ids ="ids="+options;
+			console.log("ids===",ids);
+			var url=baseURL+"/order/batchDelete";
+			$.post(url,ids,function(response){
+				if(response.status===200){
+					initData();
+				}else{
+					alert(response.message);
+				}
+			})
+		})
+
+		//为查询绑定事件
+		$("#query").click(function(){
+			var key= $("#key option:selected").val();
+			switch(key){
+				case "query":
+
+					break;
+				case "queryBasic":
+					
+					break;
+			}
+		})
+
+	})
+</script>
+
+
+<div class="container-fluid">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+			<li class="breadcrumb-item active" aria-current="page">订单信息</li>
+		</ol>
+	</nav>
+	<!-- 头部按钮组 -->
+	<div class="btns mb-2 ml-5">
+		<div id="btn_add" class="btn btn-outline-success mr-2">添加</div>
+		<div id="batch_del" class="btn btn-outline-danger d-inline ">批量删除</div>
+	
+		
+	</div>
+	<!-- 表格 -->
+	<table id="order_tab" class="table table-bordered table-hover" >  <!-- 用table标签，而不是div -->
+		<thead class="thead-dark">
+			<tr class="row text-center">
+				<th class="col">编号</th>
+				<th class="col">订单时间</th>
+				<th class="col">总数</th>
+				<th class="col">顾客编号</th>
+				<th class="col">员工编号</th>
+				<th class="col">地址编号</th>
+				<th class="col">操作</th>
+			</tr>
+		</thead>
+		<tbody class="tbody-light">
+			
+		</tbody>
+	</table>
+</div>
+
+<!-- 模态框开始 -->
+	<div id="order_modal" class="modal" tabindex="-1" role="dialog">
+  		<div class="modal-dialog" role="document">
+   			 <div class="modal-content">
+      			<div class="modal-header">
+        			<h5 class="modal-title">添加/修改订单信息<h5>
+        			<button type="button" class="close" onclick="closeModal.call(this)">
+          				<span aria-hidden="true">&times;</span>
+        			</button>
+      			</div>
+      			<div class="modal-body">
+					<form>
+						<!-- 隐藏域，用来存放id -->
+						<div class="form-group">
+							<input type="hidden" name="id" value="">
+						</div>
+						<!-- 用来存放订单时间 -->
+						<div class="form-group row text-center">
+							<label for="" class="col-sm-3">订单时间</label>
+							<input type="text" name="orderTime" class="form-control col-sm-8">
+						</div>
+						<!-- 用于存放总数 -->
+						<div class="form-group row text-center">
+							<label for="" class="col-sm-3">总&emsp;&emsp;数</label>
+							<input type="text" name="total" class="form-control col-sm-8">
+						</div>
+						<!-- 用于存放顾客编号 -->
+						<div class="form-group row text-center">
+							<label for="" class="col-sm-3">顾客编号</label>
+							<!-- <input type="text" name="customerId" class="form-control col-sm-8"> -->
+							<select id="selectCustomer" name="customerId" class="form-control col-sm-8"></select>
+						</div>
+						<!-- 用于存放员工编号 -->
+						<div class="form-group row text-center">
+							<label for="" class="col-sm-3">员工编号</label>
+							<!-- <input type="text" name="waiterId" class="form-control col-sm-8"> -->
+							<select id="selectWaiter" name="waiterId" class="form-control col-sm-8"></select>
+						</div>
+							<!-- 用于存放地址编号 -->
+						<div class="form-group row text-center">
+							<label for="" class="col-sm-3">地址编号</label>
+							<!-- <input type="text" name="addressId" class="form-control col-sm-8"> -->
+							<select id="selectAddress" name="addressId" class="form-control col-sm-8"></select>
+						</div>
+					</form>
+
+      			</div>
+      			<div class="modal-footer">
+        			<button type="button" class="btn btn-secondary" onclick="closeModal.call(this)">关闭</button>
+        			<button id="submitOrder" type="button" class="btn btn-primary" >提交</button>
+      			</div>
+    		</div>
+  		</div>
+	</div>
+<!-- 模态框结束

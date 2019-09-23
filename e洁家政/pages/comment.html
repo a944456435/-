@@ -1,0 +1,316 @@
+<script>
+//函数提前声明
+var myid;
+//数据初始化函数
+var baseURL="http://134.175.100.63:6677"
+function initData(){
+	var url=baseURL+"/comment/findAll"
+	$.get(url,function(response){
+		if(response.status===200){
+			//清空原本的tbody中的数据，实现增删改时刷新
+			$("#products_tab tbody").empty();
+			console.log("result:",response.data)
+			response.data.forEach(function(item,index){
+				$(`<tr class="row text-center">
+				<td class="col"><input type="checkbox" name="id" value="`+item.id+`"></td>
+				<td class="col">`+item.content+`</td>
+				<td class="col">`+item.commentTime+`</td>
+				<td class="col">`+item.orderId+`</td>
+				<td class="col">
+					<a href="javascript:void(0)" class="btn_del"><i class="h4 iconfont icon-shanchu"></i></a>
+					<a href="javascript:void(0)" class="btn_upd"><i class="h4 ml-3 iconfont icon-xiugai07"></i></a>
+				</td>
+				</tr>`).appendTo("#products_tab tbody");
+			})
+		}else{
+			alert(response.message);
+		}
+	})
+}
+
+function closeModal(){
+	$("#comment_modal").modal("hide")
+}
+
+//加载订单的数据
+function initOrder(){
+	var url =baseURL+"/order/findAll"
+	$.get(url,function(response){
+		if (response.status===200) {
+			response.data.forEach(function(item){
+				$(`<option value="`+item.id+`">`+item.id+`</option>`).appendTo("#select1");
+			})
+		}else{
+			alert(response.message);
+		}
+	})
+}
+
+
+
+// 加载文档后执行	
+$(function(){
+	// 初始化数据
+	initData();
+
+	//模态框
+	//给添加按钮绑定打开模态框的事件
+	$("#btn_add").click(function(){
+		$("#comment_modal").modal("show")
+		 //当点击修改后又重新添加时，把表单验证的提示信息重置
+			$("#comment_modal form div:first-child div").remove();
+			$("#comment_modal form div:nth-child(2) div").remove();
+			$("#dingdan div").remove();
+		//添加时把需要填的信息做个*的标记
+			$("#comment_modal form>div:first-child").append(`<div class="col-sm-3">*</div>`);
+			$("#comment_modal form>div:nth-child(2)").append(`<div class="col-sm-3">*</div>`);
+			$("#dingdan").append(`<div class="col-sm-3">*</div>`);
+	})
+	//监听模态框的打开，加载订单现有的全部分类
+	$("#comment_modal").on('show.bs.modal',function(){
+		//把订单的所有分类加载进下拉框中
+		initOrder();
+	})
+	//监听模态框的关闭，清空表单内容
+	$("#comment_modal").on("hide.bs.modal",function(){
+		$(this).find("form")[0].reset();
+		myid="";
+	})
+
+	//为修改按钮绑定事件
+	//!!!!这里要使用事件代理绑定事件
+	$("#products_tab tbody").on("click","a",function(){
+		if(this.className=="btn_upd"){
+			//弹出模态框
+			$("#comment_modal").modal("show")
+			//将选中的tr数据放进弹出的模态框中
+			 myid=$(this).parents("tr").find("input[type=checkbox]").val();
+			
+			//$("#comment_modal form input[type=hidden]").val($(this).parents("tr").find("input[type=checkbox]").val());
+			$("#comment_modal form textarea[name=content]").val($(this).parents("tr").find("td:nth-child(2)").text());
+			$("#comment_modal form input[name=commentTime]").val($(this).parents("tr").find("td:nth-child(3)").text());
+			$("#select1").val($(this).parents("tr").find("td:nth-child(4)").text());
+
+			 //模拟需要表单验证的输入框失去焦点进行表单验证
+			$("#comment_modal form textarea").trigger("blur");
+			$("#comment_modal form input[name=commentTime]").trigger("blur");
+			$("#dingdan").trigger("blur");
+		}else if(this.className=="btn_del"){
+			var url=baseURL+"/comment/deleteById"
+			var id={id:$(this).parents("tr").find("input[type=checkbox]").val()};
+			$.get(url,id,function(response){
+				if (response.status===200) {
+					closeModal();
+					initData();
+				}else{
+					alert(response.message);
+				}
+			})
+		}
+	})
+
+
+	//表单验证
+	//评论内容验证，
+	content_result=false;//设置一个用于标记的全局变量
+	$("#comment_modal form textarea").blur(function(){
+		//获得输入框的值
+		var content=$("#comment_modal form textarea").val();
+		var content_reg=/\S/g;
+
+		if (content_reg.test(content)) {
+			console.log('对的')
+			$("#comment_modal form div:nth-child(1) div").remove();
+			content_result=true;
+		}else{
+			console.log(('错了'))
+			$("#comment_modal form >div:nth-child(1) div").remove();
+			$("#comment_modal form>div:nth-child(1)").append(`<div class="col-sm-3 text-danger">内容不为空</div>`);
+			content_result=false;
+		}
+	});
+
+	//评论时间验证，
+	commentTime_result=false;//设置一个用于标记的全局变量
+	$("#comment_modal form input[name=commentTime]").blur(function(){
+		//获得输入框的值
+		var commentTime=$("#comment_modal form input[name=commentTime]").val();
+		var commentTime_reg=/[0-9]+/ig;
+
+		if (commentTime_reg.test(commentTime)) {
+			console.log('对的')
+			$("#comment_modal form >div:nth-child(2) div").remove();
+			commentTime_result=true;
+		}else{
+			console.log(('错了'))
+			$("#comment_modal form div:nth-child(2) div").remove();
+			$("#comment_modal form>div:nth-child(2)").append(`<div class="col-sm-3 text-danger">价格只为数字</div>`);
+			commentTime_result=false;
+		}
+	});
+
+	//订单编号下拉框验证，不能为null
+	order_result=false;//设置一个用于标记的全局变量
+	$("#dingdan select").blur(function(){
+		//获得输入框的值
+		var orderId=$("#dingdan select").val();
+		console.log("orderId====",orderId);
+		var order_reg=/[0-9]+/ig;
+
+		if (order_reg.test(orderId)) {
+			console.log('对的')
+			$("#dingdan div").remove();
+			order_result=true;
+		}else{
+			console.log(('错了'))
+			$("#dingdan div").remove();
+			$("#dingdan").append(`<div class="col-sm-3 text-danger">订单编号不为空</div>`);
+			order_result=false;
+		}
+	});
+
+
+	//为提交按钮绑定修改或增加评论的事件
+	$("#submitComment").click(function(){
+		//获取输出值
+		//var id = $("#comment_modal .modal-body form").find("input[type=hidden]").val();
+		var content =$("#comment_modal .modal-body form").find("textarea[name=content]").val();
+		var commentTime=$("#comment_modal .modal-body form").find("input[name=commentTime]").val();
+		var orderId=$("#comment_modal .modal-body form").find("#select1 option:selected").val();
+		var param ={id:myid,content:content,commentTime:commentTime,orderId:orderId};
+		 // console.log("param:",param)
+
+		 //表单验证
+		 if (content_result&&commentTime_result&&order_result) {
+		 	if (myid) {
+				//有id时修改
+				 param ={id:myid,content:content,commentTime:commentTime,orderId:orderId};
+				 myid="";
+			}else{
+				//无id时增加
+				 param ={content:content,commentTime:commentTime,orderId:orderId}
+			}
+
+			var url=baseURL+"/comment/saveOrUpdate"
+			$.post(url,param,function(response){
+				console.log('response',response)
+				if(response.status==200){
+					closeModal();
+					initData();
+				}else{
+					alert("后台接口错误！")
+				}
+			})
+			 }else{
+			 	alert("请完善注册信息后提交！")
+			 }
+	});
+
+
+	//为批量删除绑定事件
+	$("#batch_del").click(function(){
+		//获取勾选的复选框,通过映射的迭代方法得到每个id,最后转为数组
+		var options=$("#products_tab tbody input[type=checkbox]:checked").map(function(index,item){
+			return item.value;
+		}).toArray();
+		var ids="ids="+options;
+		console.log("ids:",ids);
+		var url=baseURL+"/comment/batchDelete"
+		$.post(url,ids,function(response){
+			if (response.status===200) {
+				initData();
+			}else{
+				alert(response.message)
+			}
+		})
+
+	})
+		
+
+
+})
+
+</script>
+
+
+
+
+<div class="container-fluid">
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+			<li class="breadcrumb-item active" aria-current="page">评论信息</li>
+		</ol>
+	</nav>
+	<!-- 头部按钮组 -->
+	<div class="btns mb-2 ml-5">
+		<div id="btn_add" class="btn btn-outline-success mr-2">添加</div>
+		<div id="batch_del" class="btn btn-outline-danger d-inline">批量删除</div>
+	
+	</div>
+
+	<!-- 表格 -->
+	<table id="products_tab" class="table table-bordered table-hover ">  <!-- 用table标签，而不是div -->
+		<thead class="thead-dark">
+			<tr class="row text-center">
+				<th class="col">编号</th>
+				<th class="col">评论内容</th>
+				<th class="col">评论时间</th>
+				<th class="col">订单号</th>
+				<th class="col">操作</th>
+			</tr>
+		</thead>
+		<tbody class="tbody-light">
+			
+		</tbody>
+	</table>
+</div>
+
+
+
+<!-- 模态框开始 -->
+	<div id="comment_modal" class="modal" tabindex="-1" role="dialog">
+  		<div class="modal-dialog" role="document">
+   			 <div class="modal-content">
+      			<div class="modal-header">
+        			<h5 class="modal-title">添加/修改评论信息<h5>
+        			<button type="button" class="close" onclick="closeModal.call(this)">
+          				<span aria-hidden="true">&times;</span>
+        			</button>
+      			</div>
+      			<div class="modal-body">
+					<form>
+						<!-- 隐藏域，用来存放id -->
+						<!-- <div class="form-group">
+							<input type="hidden" name="id" value="">
+						</div> -->
+						<!-- 用来存放评论内容 -->
+						<div class="form-group row ">
+							<label for="" class="col-sm-3 text-center">评论内容</label>
+							<textarea name="content" class="form-control col-sm-6"></textarea>
+						</div>
+						
+						<!-- 用于存放评论时间 -->
+						<div class="form-group row">
+							<label for="commentTime" class="col-sm-3 text-center">评论时间</label>
+							<input type="text" name="commentTime" class="form-control col-sm-6">
+						</div>
+						
+						<!-- 用于存放订单id -->
+						<div id="dingdan" class="form-group row">
+							<label for="" class="col-sm-3 text-center">订单编号</label>
+							<select id="select1" name="orderId" class="form-control col-sm-6">
+								<option value="null" style="display:none;">请选择订单编号</option>}
+							</select>
+						</div>
+						
+					</form>
+
+      			</div>
+      			<div class="modal-footer">
+        			<button type="button" class="btn btn-secondary" onclick="closeModal.call(this)">关闭</button>
+        			<button id="submitComment" type="button" class="btn btn-primary" >提交</button>
+      			</div>
+    		</div>
+  		</div>
+	</div>
+<!-- 模态框结束

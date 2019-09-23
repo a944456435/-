@@ -1,0 +1,411 @@
+
+<div class="container-fluid">
+	<!-- 分页处理 -->
+<!-- <div class="container-fluid" style="overflow-y:hidden;max-height:622px;postion:relative"> -->
+
+	<nav aria-label="breadcrumb">
+		<ol class="breadcrumb">
+			<li class="breadcrumb-item active" aria-current="page">顾客信息</li>
+		</ol>
+	</nav>
+
+
+	<!-- 头部按钮组 -->
+	<div class="btns mb-2 ml-5" >
+		<div id="btn_add" class="btn btn-outline-success mr-2">添加</div>
+		<div id="batch_del" class="btn btn-outline-danger d-inline ">批量删除</div>
+	
+	</div>
+
+	<!-- 表格 -->
+	<table id="customer_tab" class="table table-bordered table-hover">  <!-- 用table标签，而不是div -->
+		<thead class="thead-dark">
+			<tr class="row text-center">
+				<th class="col">编号</th>
+				<th class="col">电话号码</th>
+				<th class="col">密码</th>
+				<th class="col">真实名字</th>
+				<th class="col">状态</th>
+				<th class="col">照片</th>
+				<th class="col">操作</th>
+			</tr>
+		</thead>
+		<tbody id="customer_tab_tbody" class="tbody-light">
+			
+		</tbody>
+	</table>
+
+	<!-- 分页导航 -->
+    <!-- <div id="barcon" name="barcon" style="position:absolute;top:690px;left:1000px"></div> -->
+
+
+</div>
+
+
+
+<!-- 模态框开始 -->
+	<div id="customer_modal" class="modal" tabindex="-1" role="dialog">
+  		<div class="modal-dialog" role="document">
+   			 <div class="modal-content">
+      			<div class="modal-header">
+        			<h5 class="modal-title">添加/修改顾客信息<h5>
+        			<button type="button" class="close" onclick="closeModal.call(this)">
+          				<span aria-hidden="true">&times;</span>
+        			</button>
+      			</div>
+      			<div class="modal-body">
+					<form>
+						<!-- 用来存放评论电话号码 -->
+						<div class="form-group row ">
+							<label for="" class="col-sm-3 text-center">电话号码</label>
+							<input type="text" name="telephone" class="form-control col-sm-6 ">
+							<!-- <div class="col-sm-4">*</div> -->
+						</div>
+						<!-- 用于存放密码 -->
+						<div class="form-group row ">
+							<label for="" class="col-sm-3 text-center">密&emsp;&emsp;码</label>
+							<input type="text" name="password" class="form-control col-sm-6 ">
+							<!-- <div class="col-sm-4">*</div> -->
+						</div>
+						<!-- 用于存放真实姓名 -->
+						<div class="form-group row ">
+							<label for="" class="col-sm-3 text-center">真实姓名</label>
+							<input type="text" name="realname" class="form-control col-sm-6 ">
+							<!-- <div class="col-sm-4">*</div> -->
+						</div>
+						<!-- 用于存放状态 -->
+						<div class="form-group row ">
+							<label for="status" class="col-sm-3 text-center">状&emsp;&emsp;态</label>
+							<input type="text" name="status" class="form-control col-sm-6 ">
+						</div>
+						<!-- 用于存放照片 -->
+						<div class="form-group row">
+							<label for="" class="col-sm-3 text-center">照&emsp;&emsp;片</label>
+							<input type="text" name="photo" class="form-control col-sm-6 ">
+						</div>
+					</form>
+
+      			</div>
+      			<div class="modal-footer">
+        			<button type="button" class="btn btn-secondary" onclick="closeModal.call(this)">关闭</button>
+        			<button id="submitCustomer" type="button" class="btn btn-primary" >提交</button>
+      			</div>
+    		</div>
+  		</div>
+	</div>
+<!-- 模态框结束-->
+
+
+
+<script>
+//函数提前声明
+
+//设置一个为删除或添加做区别的变量globl_id
+var myid;
+//数据初始化函数
+var baseURL="http://134.175.100.63:6677"
+
+function initData(){
+	var url=baseURL+"/customer/findAll"
+	$.get(url,function(response){
+		if(response.status===200){
+			//清空原本的tbody中的数据，实现增删改时刷新
+			$("#customer_tab tbody").empty();
+			response.data.forEach(function(item,index){
+				$(`<tr class="row text-center" style="display:;">
+				<td class="col"><input type="checkbox" name="id" value="`+item.id+`"></td>
+				<td class="col">`+item.telephone+`</td>
+				<td class="col">`+item.password+`</td>
+				<td class="col">`+item.realname+`</td>
+				<td class="col">`+item.status+`</td>
+				<td class="col">`+item.photo+`</td>
+				<td class="col">
+					<a href="javascript:void(0)" class="btn_del"><i class="h4 iconfont icon-shanchu"></i></a>
+					<a href="javascript:void(0)" class="btn_upd"><i class="h4 ml-3 iconfont icon-xiugai07"></i></a>
+					<a href="javascript:void(0) class="btn_details"><i class="h4 ml-3 iconfont icon-xiangqing"></i></a>
+				</td>
+				</tr>`).appendTo("#customer_tab tbody");
+			 })
+		}else{
+			alert(response.message);
+		}
+	})
+}
+
+
+
+
+
+
+/*
+//尝试分页实现
+    function goPage(pno, psize) {
+        var itable = document.getElementById("customer_tab_tbody");//通过ID找到表格
+
+	var url=baseURL+"/customer/findAll"
+	$.get(url,function(response){
+		var num=response.data.length;
+
+		//回调函数,分页处理
+		  //var num = itable.rows.length;//表格所有行数(所有记录数)
+        console.log("总的记录数===",num)
+        var totalPage = 0;//总页数
+        var pageSize = psize;//每页显示行数
+        //总共分几页
+        totalPage=Math.ceil(num/pageSize);
+
+        var currentPage = pno;//当前页数
+        var startRow = (currentPage - 1) * pageSize + 1;//开始显示的行  1
+        var endRow = currentPage * pageSize;//结束显示的行   15
+        endRow = (endRow > num) ? num : endRow;
+        //遍历显示数据实现分页
+        for (var i = 1; i < (num + 1); i++) {
+            var irow = itable.rows[i - 1];
+            if (i >= startRow && i <= endRow) {
+                irow.style.display = "";
+            } else {
+                irow.style.display = "none";
+            }
+        }
+        var tempStr = "";
+        if (currentPage > 1) {
+            tempStr += "<a href=\"#\" onClick=\"goPage(" + (currentPage - 1) + "," + psize + ")\"><上一页&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>"
+            for (var j = 1; j <= totalPage; j++) {
+                tempStr += "<a href=\"#\" onClick=\"goPage(" + j + "," + psize + ")\">" + j + "&nbsp;&nbsp;&nbsp;</a>"
+            }
+        } else {
+            tempStr += "<上一页&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+            for (var j = 1; j <= totalPage; j++) {
+                tempStr += "<a href=\"#\" onClick=\"goPage(" + j + "," + psize + ")\">" + j + "&nbsp;&nbsp;&nbsp;</a>"
+            }
+        }
+        if (currentPage < totalPage) {
+            tempStr += "<a href=\"#\" onClick=\"goPage(" + (currentPage + 1) + "," + psize + ")\">下一页>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>";
+            
+        } else {
+            tempStr += "  下一页>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+           
+        }
+
+        document.getElementById("barcon").innerHTML = tempStr;
+
+
+	})
+
+
+
+      
+     }
+*/
+
+
+
+//关闭模态框  //放在文档加载后时不起作用？？？？？？？
+function closeModal(){
+	$("#customer_modal").modal("hide");
+
+}
+
+// 加载文档后执行	
+$(function(){
+	// 初始化数据
+	initData();
+	//goPage(1,5);
+
+
+	//模态框
+	//给添加按钮绑定打开模态框的事件
+	$("#btn_add").click(function(){
+		$("#customer_modal").modal("show")
+			//当点击修改后又重新添加时，把表单验证的提示信息重置
+			$("#customer_modal form div:first-child div").remove();
+			$("#customer_modal form div:nth-child(2) div").remove();
+			$("#customer_modal form div:nth-child(3) div").remove();
+			//添加时把需要填的信息做个*的标记
+			$("#customer_modal form>div:first-child").append(`<div class="col-sm-3">*</div>`);
+			$("#customer_modal form>div:nth-child(2)").append(`<div class="col-sm-3">*</div>`);
+			$("#customer_modal form>div:nth-child(3)").append(`<div class="col-sm-3">*</div>`);
+	})
+
+	//监听模态框的关闭，清空表单内容
+	$("#customer_modal").on("hide.bs.modal",function(){
+		$(this).find("form")[0].reset();
+		//修改后把global_id置空
+		myid="";
+	})
+
+
+	//为修改按钮绑定事件
+	//!!!!这里要使用事件代理绑定事件
+	$("#customer_tab tbody").on("click","a",function(){
+		console.log(this,"========")
+		if(this.className=="btn_upd"){
+			//弹出模态框
+			$("#customer_modal").modal("show")
+			//将选中的tr数据放进弹出的模态框中
+			 myid=$(this).parents("tr").find("input[type=checkbox]").val();
+			// $("#customer_modal form input[type=hidden]").val($(this).parents("tr").find("input[type=checkbox]").val());
+			$("#customer_modal form input[name=telephone]").val($(this).parents("tr").find("td:nth-child(2)").text());
+			$("#customer_modal form input[name=password]").val($(this).parents("tr").find("td:nth-child(3)").text());
+			$("#customer_modal form input[name=realname]").val($(this).parents("tr").find("td:nth-child(4)").text());
+			$("#customer_modal form input[name=status]").val($(this).parents("tr").find("td:nth-child(5)").text());
+			$("#customer_modal form input[name=photo]").val($(this).parents("tr").find("td:nth-child(6)").text());
+
+			//模拟需要表单验证的输入框失去焦点进行表单验证
+			$("#customer_modal form input[name=telephone]").trigger("blur");
+			$("#customer_modal form input[name=password]").trigger("blur");
+			$("#customer_modal form input[name=realname]").trigger("blur");
+
+		}else if(this.className=="btn_del"){
+			var url=baseURL+"/customer/deleteById"
+			var id={id:$(this).parents("tr").find("input[type=checkbox]").val()};
+			$.get(url,id,function(response){
+				if (response.status===200) {
+					closeModal();
+					initData();
+					//goPage(1,5);
+				}else{
+					alert(response.message);
+				}
+			})
+		}
+	});
+
+
+	//表单验证
+	//电话号码验证，11位数字
+	//$("#customer_modal .modal-body form>div input[name=telephone]")获取不到？
+	tel_result=false;//设置一个用于标记的全局变量
+	$("#customer_modal form input[name=telephone]").blur(function(){
+		//获得输入框的值
+		var telephone=$("#customer_modal form input[name=telephone]").val();
+		var tel_reg=/^[1-9][0-9]{10}/ig;
+		if (tel_reg.test(telephone)) {
+			console.log('对的')
+			$("#customer_modal form div:first-child div").remove();
+			tel_result=true;
+		}else{
+			console.log(('错了'))
+			$("#customer_modal form div:first-child div").remove();
+			$("#customer_modal form>div:first-child").append(`<div class="col-sm-3 text-danger">非零开头的11数字！</div>`);
+			tel_result=false;
+			console.log("tel_result",tel_result)
+		}
+	});
+		
+	//密码验证验证，至少6位数字
+	pwd_result=false;//设置一个用于标记的全局变量
+	$("#customer_modal form input[name=password]").blur(function(){
+		//获得输入框的值
+		var password=$("#customer_modal form input[name=password]").val();
+		var pwd_reg=/[0-9]{6,}/ig;
+
+		if (pwd_reg.test(password)) {
+			console.log('对的')
+			$("#customer_modal form div:nth-child(2) div").remove();
+			pwd_result=true;
+		}else{
+			console.log(('错了'))
+			$("#customer_modal form div:nth-child(2) div").remove();
+			$("#customer_modal form>div:nth-child(2)").append(`<div class="col-sm-3 text-danger">密码至少为6位数字！</div>`);
+			pwd_result=false;
+		}
+	});
+
+	//真实姓名验证，只能是中文，长度为2-7位
+	name_result=false;//设置一个用于标记的全局变量
+	$("#customer_modal form input[name=realname]").blur(function(){
+		//获得输入框的值
+		var realname=$("#customer_modal form input[name=realname]").val();
+		var name_reg=/^([\u4e00-\u9fa5]){2,7}$/ig;
+
+		if (name_reg.test(realname)) {
+			console.log('对的')
+			$("#customer_modal form div:nth-child(3) div").remove();
+			name_result=true;
+		}else{
+			console.log(('错了'))
+			$("#customer_modal form div:nth-child(3) div").remove();
+			$("#customer_modal form>div:nth-child(3)").append(`<div class="col-sm-3 text-danger">请输入2-7位中文</div>`);
+			name_result=false;
+		}
+	});
+
+
+
+	//为提交按钮绑定修改或增加评论的事件
+	$("#submitCustomer").click(function(){
+		//获取输入值
+		//var id = $("#customer_modal .modal-body form").find("input[type=hidden]").val();
+		var telephone =$("#customer_modal .modal-body form").find("input[name=telephone]").val();
+		var password=$("#customer_modal .modal-body form").find("input[name=password]").val();
+		var realname=$("#customer_modal .modal-body form").find("input[name=realname]").val();
+		var status=$("#customer_modal .modal-body form").find("input[name=status]").val();
+		var photo=$("#customer_modal .modal-body form").find("input[name=photo]").val();
+		// var param ={id:myid,telephone:telephone,password:password,realname:realname,status:status,photo:photo};
+		 // console.log(param)
+
+		 //在提交之前通过表单验证
+		 if(tel_result&&pwd_result&&name_result){
+		 	alert("可以提交");
+
+		 	if (myid) {
+			//有id时修改
+			var param ={id:myid,telephone:telephone,password:password,realname:realname,status:status,photo:photo};
+			
+			}else{
+				//无id时增加
+				var param ={telephone:telephone,password:password,realname:realname,status:status,photo:photo};
+			}
+			var url=baseURL+"/customer/saveOrUpdate"
+			$.post(url,param,function(response){
+				if(response.status==200){
+					closeModal();
+					initData();
+					//goPage(1,5);
+
+				}else {
+					alert(response.message)
+				}
+			})
+
+			// 结束
+		 }else{
+		 	alert("请输入完整的顾客信息后提交.")
+		 }
+		
+	});
+
+
+	//为批量删除绑定事件
+	$("#batch_del").click(function(){
+		//获取勾选的复选框,通过映射的迭代方法得到每个id,最后转为数组
+		var options=$("#customer_tab tbody input[type=checkbox]:checked").map(function(index,item){
+			return item.value;
+		}).toArray();
+		var ids="ids="+options;
+		console.log("ids:",ids);
+		var url=baseURL+"/customer/batchDelete"
+		$.post(url,ids,function(response){
+			if (response.status===200) {
+				initData();
+				//goPage(1,5);
+			}else{
+				alert(response.message)
+			}
+		})
+
+	});
+
+	
+	
+
+
+})
+
+</script>
+
+
+
+
+
