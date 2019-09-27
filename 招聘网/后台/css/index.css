@@ -32,3 +32,10 @@
 	color: #fff;
 	font-size: 16px;
 }
+
+.modal-backdrop{
+	z-index: -10 !important;
+}
+.layui-header{
+	z-index: -1;
+}

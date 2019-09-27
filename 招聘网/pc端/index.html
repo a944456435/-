@@ -6,7 +6,65 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>pc端招聘网首页</title>
     <link rel="stylesheet" href="style/style.css"/>
+    <link href="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.css" rel="stylesheet">
     <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js"></script>
+    <script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.js"></script>
+    <script type="text/javascript">
+    //函数提前声明或全局变量声明
+    var baseURL="http://203.195.246.58:7777"
+    //招聘信息初始化到pc端首页
+    function initEmployment(){
+        var url=baseURL+"/Employment/findAll"
+        $.get(url,function(response){
+            console.log('data',response.data);
+            if (response.status===200) {
+                response.data.forEach(function(item){
+                    $(`<div class="m">
+                        <h4>`+item.title+`</h4>
+                        <div class="m_1">`+item.salary+` 元</div>
+                        <div class="w">
+                        <div class="m_2 c1">`+item.welfare+`</div>
+                        </div>
+                        <div class="m_9">
+                            <p>联系人：`+item.contactName+`</p>
+                            <p>联系电话：`+item.contactPhone+`</p>
+                            <p>工作类型：`+item.job+`</p>
+                            <p>招聘人数：`+item.num+`人</p>
+                            <p>招聘状态：`+item.status+`</p>
+                        </div>
+                        <div class="bm m_3 btn btn_baoming" id="bm">一键报名</div>
+                        </div>`).appendTo("#con_menu");
+                })
+            }
+        })
+    }
+
+    //为关闭模态框绑定方法
+    function closeModal(){
+        $(".modal").modal("hide");
+    }
+    
+
+    // 文档加载后执行
+     $(function(){
+        //初始化
+        initEmployment();
+
+         // 点击一键报名打开模态框,内容后面才产生，所有用事件代理
+        $("#con_menu").on("click","div",function(){
+            console.log('2222')
+            if (this.id=="bm") {//使用className时不生效
+                $(".modal").modal("show");
+            }
+        })
+
+
+
+
+     })   
+    </script>
+
+
 </head>
 <body>
     <div class="head">
@@ -109,8 +167,8 @@
     </div>
     <!-- 内容正文开始 -->
     <div id="con_menu">
-        <div class="m">
-            <h4>190/天上一休一连锁超市急招营业员</h4>
+       <!--  <div class="m">
+            <h4>天上一休一连锁超市急招营业员</h4> 
             <div class="m_1">4000-5000 元/月</div>
             <div class="w">
             <div class="m_2 c1">五险一金</div>
@@ -125,58 +183,8 @@
             </div>
             <div class="m_3">一键报名</div>
             
-        </div>
-        <div class="m">
-            <h4>190/天上一休一连锁超市急招营业员</h4>
-            <div class="m_1">4000-5000 元/月</div>
-            <div class="w">
-            <div class="m_2 c1">五险一金</div>
-            <div class="m_2 c2">包吃</div>
-            <div class="m_2 c3">包住</div>
-            </div>
-            <div class="m_9">
-                <p>工作时间：全职工作</p>
-                <p>工作类型：收银员</p>
-                <p>招聘人数：10人</p>
-                <p>工作地点：海淀知春路</p>
-            </div>
-            <div class="m_3">一键报名</div>
-            
-        </div>
-        <div class="m">
-            <h4>190/天上一休一连锁超市急招营业员</h4>
-            <div class="m_1">4000-5000 元/月</div>
-            <div class="w">
-            <div class="m_2 c1">五险一金</div>
-            <div class="m_2 c2">包吃</div>
-            <div class="m_2 c3">包住</div>
-            </div>
-            <div class="m_9">
-                <p>工作时间：全职工作</p>
-                <p>工作类型：收银员</p>
-                <p>招聘人数：10人</p>
-                <p>工作地点：海淀知春路</p>
-            </div>
-            <div class="m_3">一键报名</div>
-            
-        </div>
-        <div class="m">
-            <h4>190/天上一休一连锁超市急招营业员</h4>
-            <div class="m_1">4000-5000 元/月</div>
-            <div class="w">
-            <div class="m_2 c1">五险一金</div>
-            <div class="m_2 c2">包吃</div>
-            <div class="m_2 c3">包住</div>
-            </div>
-            <div class="m_9">
-                <p>工作时间：全职工作</p>
-                <p>工作类型：收银员</p>
-                <p>招聘人数：10人</p>
-                <p>工作地点：海淀知春路</p>
-            </div>
-            <div class="m_3">一键报名</div>
-            
-        </div>
+        </div> -->
+       
     </div>
     <!-- 内容正文结束 -->
     <!-- 分页开始 -->
@@ -197,5 +205,74 @@
         ©2015-2019 ####################有限公司 ##ICP备#############号 ##公网安备###############号 联系电话：####-###########
     </div>
     <!-- 底部信息结束 -->
+    <!-- 模态框开始 -->
+    <div class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">快速报名</h5>
+            <button type="button" class="close" onclick="closeModal()">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- 表单开始      -->
+            <form>
+                    <input type="hidden" name="id" value="">
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="name">*&ensp;&ensp;姓&ensp;&ensp;&ensp;&ensp;名</label>
+                        <input type="text" class="form-control col-sm-8" placeholder="请输入2-4个汉字" name="name">
+                  </div>
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="">*&ensp;&ensp;电&ensp;&ensp;&ensp;&ensp;话</label>
+                        <input type="text" class="form-control col-sm-8" placeholder="请输入11位手机号码">
+                  </div>
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right">*&ensp;&ensp;性&ensp;&ensp;&ensp;&ensp;别</label>
+                      <div class="form-check col-sm-2 text-right">
+                          <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1">
+                          <label class="form-check-label" for="inlineRadio1">男</label>
+                        </div>
+                        <div class="form-check">
+                          <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">
+                          <label class="form-check-label" for="inlineRadio2">女</label>
+                        </div>
+                  </div>    
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right">*&ensp;&ensp;出生日期</label>
+                        <input type="text" class="form-control col-sm-8" placeholder="请输入出生年月">
+                  </div>
+                    <div class="form-group row">
+                      <label class="col-sm-3 text-right">*&ensp;&ensp;最高学历</label>
+                      <select id="" class="form-control col-sm-8">
+                        <option selected>请选择学历</option>
+                        <option>研究生</option>
+                        <option>本科</option>
+                        <option>大专</option>
+                        <option>高中</option>
+                      </select>
+                    </div>
+                     <div class="form-group row">
+                        <label class="col-sm-3 text-right">*&ensp;&ensp;工作经验</label>
+                        <textarea type="text" class="form-control col-sm-8" placeholder="请输入工作经验">
+                        </textarea> 
+                  </div>
+                  <div class="form-group form-check">
+                        <input type="checkbox" class="form-check-input test-right" id="exampleCheck1">
+                        <label class="form-check-label" for="exampleCheck1">我已阅读</label>
+                        <label class="form-check-label" for="exampleCheck1" style="color:blue;font-size: 12px;text-decoration: underline;">《用户注册与隐私保护服务协议》</label>
+                  </div>
+                </form>
+            <!-- 表单结束 -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 模态框结束 -->
+
 </body>
 </html>

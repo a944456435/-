@@ -1,0 +1,306 @@
+<!-- js代码开始 -->
+<script type="text/javascript">
+//全局变量或函数声明
+var baseURL="http://203.195.246.58:7777"
+//数据初始化函数
+function initData(){
+	var url=baseURL+"/EmploymentJobhunter/findAll"
+	$.get(url,function(response){
+		if (response.status==200) {
+			$("#tab_employmentjobhunter tbody").empty();
+			response.data.forEach(function(item){
+
+				//通过jobhunterId找到求职者姓名
+				var Jobhunter_id={id:item.jobhunterId}
+				//通过employmentId找到招聘标题
+				var Employment_id={id:item.employmentId}
+				//求职者信息
+				var url=baseURL+"/Jobhunter/findById"
+				$.get(url,Jobhunter_id,function(response){
+					// console.log('求职者信息：',response)
+					var realname=response.data.realname;
+					var telephone=response.data.telephone;
+					var resume=response.data.resume;
+					var currentStatus=response.data.currentStatus;
+
+						//招聘信息
+						var url=baseURL+"/Employment/findById"
+						$.get(url,Employment_id,function(response){
+							console.log('招聘者信息：',response)
+							var title=response.data.title;
+								 $(`<tr class="text-center">
+									<td><input type="checkbox" value="`+item.id+`"></td>
+									<td>`+realname+`</td>
+									<td>`+title+`</td>
+									<td>`+telephone+`</td>
+									<td>
+										<a href="javascript:void(0)">`+resume+`</a>
+									</td>
+									<td>`+item.askTime+`</td>
+									<td>`+currentStatus+`</td>
+									<td>`+item.remark+`</td>
+									<td>
+										<a href="javascript:void(0)" class="btn_upd">修改</a>
+										<a href="javascript:void(0)" class="btn_del">删除</a>
+									</td>
+									</tr>`).appendTo('#tab_employmentjobhunter tbody')
+
+						})
+						
+
+
+				})
+				/*
+				$(`<tr class="text-center">
+					<td><input type="checkbox" value="`+item.id+`"></td>
+					<td>`+item.jobhunterId+`</td>
+					<td>`+item.employmentId+`</td>
+					<td>`+item.askTime+`</td>
+					<td>`+item.remark+`</td>
+					<td>
+						<a href="javascript:void(0)" class="btn_upd">修改</a>
+						<a href="javascript:void(0)" class="btn_del">删除</a>
+					</td>
+					</tr>`).appendTo('#tab_employmentjobhunter tbody')
+				*/
+			})
+		}
+	})
+};
+
+//下拉框追加数据
+function addOption(){
+	$("#query1").empty();
+	$("#query1").append(`<option selected value="all">所有数据</option>`);
+	var url=baseURL+"/EmploymentJobhunter/findAll"
+	$.get(url,function(response){
+		if (response.status==200) {
+			response.data.map(function(item){
+				$(`<option value="`+item.id+`">`+item.id+`</option>`).appendTo("#query1");
+			})
+		}
+	})
+};
+
+//加载求职者id到模态框中
+function roladJober(){
+	var url =baseURL+"/Jobhunter/findAll"
+	$.get(url,function(response){
+		$("#modal_employmentjobhunter #jobhunterId").empty();
+		$("#modal_employmentjobhunter #jobhunterId").append(`<option value="" disabled>请选择求职者id</option>`);
+		if (response.status==200) {
+			response.data.forEach(function(item){
+				$(`<option value="`+item.id+`">`+item.id+`</option>`).appendTo("#modal_employmentjobhunter #jobhunterId");
+			})
+		}
+	})
+};
+
+//加载招聘信息id到模态框中
+function roladEmploy(){
+	var url =baseURL+"/Employment/findAll"
+	$.get(url,function(response){
+		$("#modal_employmentjobhunter #employmentId").empty();
+		$("#modal_employmentjobhunter #employmentId").append(`<option value="" disabled>请选择招聘信息id</option>`);
+		if (response.status==200) {
+			response.data.forEach(function(item){
+				$(`<option value="`+item.id+`">`+item.id+`</option>`).appendTo("#modal_employmentjobhunter #employmentId");
+			})
+		}
+	})
+};
+
+//模态框关闭
+function closeModal_ej(){
+	$("#modal_employmentjobhunter").modal("hide");
+}
+
+//文档加载后执行
+$(function(){
+	//执行初始化函数
+	initData();
+	addOption();
+
+	//为添加按钮绑定事件
+	$("#btn_add").click(function(){
+		$("#modal_employmentjobhunter").modal("show");
+		roladJober();
+		roladEmploy();
+	})
+
+	//监听模态框关闭时清理数据
+	$("#modal_employmentjobhunter").on("hide.bs.modal",function(){
+		$("#modal_employmentjobhunter form")[0].reset();
+		document.getElementById("hidden").value="";
+	})
+
+	//为删除、修改按钮绑定事件
+	$("#tab_employmentjobhunter tbody").on("click","a",function(){
+		if(this.className=="btn_del"){
+			var id =$(this).parents("tr").find("input[type=checkbox]").val();
+			var url=baseURL+"/EmploymentJobhunter/deleteById"
+			$.post(url,{id:id},function(response){
+				if(response.status==200){
+					initData();
+				}
+			})
+		}else if(this.className=="btn_upd"){
+			$("#modal_employmentjobhunter").modal("show");
+			roladJober();
+			roladEmploy();
+
+			$("#modal_employmentjobhunter form input[type=hidden]").val($(this).parents("tr").find("input[type=checkbox]").val());
+			$("#jobhunterId").val($(this).parents("tr").find("td:nth-child(2)").text());
+			$("#employmentId").val($(this).parents("tr").find("td:nth-child(3)").text());
+			$("#modal_employmentjobhunter form input[name=askTime]").val($(this).parents("tr").find("td:nth-child(6)").text());
+			$("#modal_employmentjobhunter form input[name=remark]").val($(this).parents("tr").find("td:nth-child(8)").text());
+
+		}
+	});
+
+	//为提交按钮绑定事件
+	$(".submit_ej").click(function(){
+		var id =$("#modal_employmentjobhunter form input[type=hidden]").val();
+		var jobhunterId =$("#modal_employmentjobhunter form select[name=jobhunterId] option:selected").val();
+		var employmentId =$("#modal_employmentjobhunter form select[name=employmentId] option:selected").val();
+		var askTime =$("#modal_employmentjobhunter form input[name=askTime]").val();
+		var remark =$("#modal_employmentjobhunter form input[name=remark]").val();
+		var param ={jobhunterId:jobhunterId,employmentId:employmentId,askTime:askTime,remark:remark}
+		console.log('param--',param)
+		if (id) {
+			//修改
+			var param ={id:id,jobhunterId:jobhunterId,employmentId:employmentId,remark:remark}
+		}else{
+			//添加
+			var param ={jobhunterId:jobhunterId,employmentId:employmentId,remark:remark}
+		}
+		var url =baseURL+"/EmploymentJobhunter/saveOrUpdate"
+		$.post(url,param,function(response){
+			if(response.status==200){
+				initData();
+				closeModal_ej();
+			}
+		})
+	});
+
+	//为查询下拉框绑定事件
+	$("#query1").click(function(){
+		var opt=$("#query1 option:selected").val();
+		var url=baseURL+"/EmploymentJobhunter/findById"
+		console.log('opt--',opt)
+		if(opt=="all"){
+			initData();
+		}else{
+			$.get(url,{id:opt},function(response){
+			console.log('response--',response)
+			$("#tab_employmentjobhunter tbody").empty();
+			$(`<tr class="text-center">
+					<td><input type="checkbox" value="`+response.data.id+`"></td>
+					<td>`+response.data.jobhunterId+`</td>
+					<td>`+response.data.employmentId+`</td>
+					<td>`+response.data.askTime+`</td>
+					<td>`+response.data.remark+`</td>
+					<td>
+						<a href="javascript:void(0)" class="btn_del">删除</a>
+					</td>
+					</tr>`).appendTo('#tab_employmentjobhunter tbody')
+			})	
+		}
+		
+	});
+
+})
+</script>
+<!-- js代码结束 -->
+
+
+<!-- html代码 -->
+<div class="container-fluid">
+	<!-- 选项卡开始 -->
+	<ul class="nav nav-tabs" id="myTab" role="tablist">
+	  <li class="nav-item">
+	    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home">求职列表</a>
+	  </li>
+	</ul>
+<div class="tab-content" id="myTabContent">
+  <div class="tab-pane fade show active" id="home">
+	<!-- 选项卡的内容开始 -->
+	<!-- 头部信息，包括下拉框，添加按钮等 -->
+	<div class="row my-3">
+		<div id="btn_add" class="btn btn-outline-success col-md-2 ml-2">添加</div>
+		<select id="query1" class="form-control col-md-3 ml-auto mr-5">
+	    </select>
+	  	</div>
+	</div>
+	<!-- 表格内容开始 -->
+	<table id="tab_employmentjobhunter" class="table table-hover">
+		  <thead class="thead-dark">
+		    <tr class="text-center">
+			  <th scope="col">编号</th>
+		      <th scope="col">求职者</th>
+		      <th scope="col">招聘标题</th>
+		      <th scope="col">联系方式</th>
+		      <th scope="col">简历</th>
+		      <th scope="col">求职时间</th>
+		      <th scope="col">求职状态</th>
+		      <th scope="col">备注</th>
+		      <th scope="col">操作</th>
+		    </tr>
+		  </thead>
+		  <tbody>
+		    
+		  </tbody>
+		</table>
+	<!-- 表格内容结束 -->
+	<!-- 选项卡的内容结束 -->
+  </div>
+</div>
+	<!-- 更新模态框开始 -->
+	<div id="modal_employmentjobhunter" class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">更新求职信息</h5>
+            <button type="button" class="close" onclick="closeModal_ej()">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- 模态框主体开始      -->
+            <form>
+            	<input id="hidden" type="hidden" value="" >
+            	<div class="row form-group">
+            		<label class="col-sm-3 text-right">求职者id</label>
+            		<select id="jobhunterId" class="col-sm-7 form-control" type="text" name="jobhunterId">
+            			<option selected disabled>请选择求职者id</option>
+            		</select>
+            	</div>
+            	<div class="row form-group">
+            		<label class="col-sm-3 text-right">招聘信息id</label>
+            		<select id="employmentId" class="col-sm-7 form-control" type="text" name="employmentId">
+            			<option selected disabled>请选择招聘信息id</option>
+            		</select>
+            	</div>
+            	<div class="row form-group">
+            		<label class="col-sm-3 text-right">求职时间</label>
+            		<input class="col-sm-7 form-control" type="text" name="askTime">
+            	</div>
+            	<div class="row form-group">
+            		<label class="col-sm-3 text-right">备&emsp;&emsp;注</label>
+            		<input class="col-sm-7 form-control" type="text" name="remark">
+            	</div>
+            	
+            
+            	
+            </form>
+            <!-- 模态框主体结束 -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal_ej()">关闭</button>
+            <button type="button" class="submit_ej btn btn-primary">提交</button>
+          </div>
+        </div>
+      </div>
+    </div>
+	<!-- 更新模态框结束 -->
+</div>

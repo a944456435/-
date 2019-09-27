@@ -1,0 +1,522 @@
+<!-- js代码开始 -->
+<script type="text/javascript">
+//定义全局变量或函数声明
+var baseURL="http://203.195.246.58:7777"
+// var baseURL="http://172.16.5.250:7777"
+function initEmployment(){
+	var url =baseURL+"/Employment/findAll"
+	$.get(url,function(response){
+		if(response.status==200){
+			$("#tab_employment1 tbody").empty();
+			response.data.forEach(function(item){
+				$(`<tr class="text-center">
+					<td><input type="checkbox" value="`+item.id+`"></td>
+					<td>`+item.title+`</td>
+					<td>`+item.contactName+`</td>
+					<td>`+item.contactPhone+`</td>
+					<td>`+item.job+`</td>
+					<td>`+item.publishTime+`</td>
+					<td>
+						<a href="javascript:void(0)" class="btn_datils">详情</a>
+					</td>
+					<td>
+						<a href="javascript:void(0)" class="btn_upd">修改</a>
+						<a href="javascript:void(0)" class="btn_del">删除</a>
+					</td>
+					</tr>`).appendTo("#tab_employment1 tbody");
+			});
+		}else{
+			alert("接口异常！")
+		}
+	})
+};
+
+//关闭模态框的方法
+function closeModal_employment(){
+	$("#modal_employment").modal("hide");
+};
+function closeModal_employment2(){
+	$("#modal_employment2").modal("hide");
+};
+
+//文档加载后执行
+$(function(){
+	//执行数据初始化
+	initEmployment();
+
+	//为添加绑定打开模态框的事件
+	$("#btn_add").click(function(){
+		$("#modal_employment").modal("show");
+	});
+
+	//监控更新操作的模态框关闭
+	$("#modal_employment").on('show.bs.modal',function(){
+		$("#modal_employment form")[0].reset();
+		document.getElementById("hidden").value="";
+	})
+	
+	//为查看详情、删除、修改绑定事件
+	$("#tab_employment1 tbody").on("click","a",function(event){
+		var id ={id:$(this).parents("tr").find("input[type=checkbox]").val()};//不能放到switch中
+		switch (this.className) {  //className是dom的，所以不能用$(this).className
+			case "btn_del":
+				var url=baseURL+"/Employment/deleteById"
+				$.post(url,id,function(response){
+					if (response.status==200) {
+						initEmployment();
+					}else{
+						alert("接口异常！");
+					}
+				})
+				break;
+			case "btn_datils":
+				$("#modal_employment2").modal("show");
+
+				$("#modal_employment2 .m_title").text($(this).parents("tr").find("td:nth-child(2)").text());
+
+				//查询对应招聘信息
+				var id={id:$(this).parents("tr").find("input[type=checkbox]").val()};
+				var url=baseURL+"/Employment/findById"
+				$.get(url,id,function(response){
+					console.log('response',response.data)
+					$("#modal_employment2 .one i:first-child").html("招聘人数："+response.data.num);
+					$("#modal_employment2 .fl a").text(response.data.welfare);
+					$("#modal_employment2 .gz").html("<i style='font-style:normal;corlor:#ccc;'>薪资待遇：</i>"+response.data.salary);
+					$("#modal_employment2 .xq").html("<i style='font-style:normal;corlor:#ccc;'>详细描述：</i>"+response.data.description);
+
+					//通过商家id，查询对应的商家信息
+					//如何得到商家id？
+					var url=baseURL+"/Business/findById"
+					$.get(url,{id:response.data.businessId},function(response){
+						console.log('response',response)
+						if(response.data!=null){
+							$("#modal_employment2 .gs").html("<i style='font-style:normal;corlor:#ccc;'>所属公司：</i>"+response.data.name);
+							$("#modal_employment2 .dd").html("<i style='font-style:normal;corlor:#ccc;'>公司地址：</i>"+response.data.location);
+					}
+					})
+
+				})
+
+				
+				break;
+			case "btn_upd":
+				$("#modal_employment").modal("show");
+
+				var id=$(this).parents("tr").find("input[type=checkbox]").val();
+				$("#modal_employment form input[type=hidden]").val(id);
+				$("#modal_employment form input[name=title]").val($(this).parents("tr").find("td:nth-child(2)").text());
+				$("#modal_employment form input[name=contactName]").val($(this).parents("tr").find("td:nth-child(3)").text());
+				$("#modal_employment form input[name=contactPhone]").val($(this).parents("tr").find("td:nth-child(4)").text());
+				$("#modal_employment form input[name=job]").val($(this).parents("tr").find("td:nth-child(5)").text());
+				$("#modal_employment form input[name=publishTime]").val($(this).parents("tr").find("td:nth-child(6)").text());
+		
+				//通过id查询得到所有数据
+				var url =baseURL+"/Employment/findById"
+				$.get(url,{id:id},function(response){
+					$("#modal_employment form input[name=welfare]").val(response.data.welfare);
+					$("#modal_employment form input[name=salary]").val(response.data.salary);
+					$("#modal_employment form input[name=description]").val(response.data.description);
+					$("#modal_employment form input[name=status]").val(response.data.status);
+					$("#modal_employment form input[name=num]").val(response.data.num);
+					$("#modal_employment form input[name=businessId]").val(response.data.businessId);
+
+				})
+
+				break;
+			
+		}
+	});
+
+	//为提交绑定事件
+	$(".submit_employment").click(function(){
+		var id=$("#modal_employment form input[type=hidden]").val();
+		var publishTime=$("#modal_employment form input[name=publishTime]").val();
+		var businessId=$("#modal_employment form input[name=businessId]").val();
+		var contactName=$("#modal_employment form input[name=contactName]").val();
+		var contactPhone=$("#modal_employment form input[name=contactPhone]").val();
+		var description=$("#modal_employment form input[name=description]").val();
+		var job=$("#modal_employment form input[name=job]").val();
+		var num=$("#modal_employment form input[name=num]").val();
+		var salary=$("#modal_employment form input[name=salary]").val();
+		var status=$("#modal_employment form input[name=status]").val();
+		var welfare=$("#modal_employment form input[name=welfare]").val();
+		var title=$("#modal_employment form input[name=title]").val();
+		var param={id:id,publishTime:publishTime,businessId:businessId,contactName:contactName,contactPhone:contactPhone,description:description,job:job,num:num,salary:salary,status:status,num:num,title:title}
+		if (id) {
+			//修改
+			var param={id:id,businessId:businessId,contactName:contactName,contactPhone:contactPhone,description:description,job:job,num:num,salary:salary,status:status,welfare:welfare,title:title}
+		}else{
+			//添加
+			var param={businessId:businessId,contactName:contactName,contactPhone:contactPhone,description:description,job:job,num:num,salary:salary,status:status,welfare:welfare,title:title}
+		}
+		console.log("paream--",param)
+		var url =baseURL+"/Employment/saveOrUpdate";
+		$.post(url,param,function(response){
+			if (response.status==200) {
+				initEmployment();
+				closeModal_employment();
+			}else if(response.status==400){
+				alert("参数异常！")
+			}
+		})
+	});
+
+	//为查询绑定事件
+	$("#select_employment1").change(function(){
+		var option =$("#select_employment1 option:selected").val();
+		console.log('option--',option);
+		$("#select_employment2").empty();
+		switch (option) {
+			case "all":
+				$("#select_employment2").append(`<option value="-1" selected disabled>不用选择</option>`);
+				initEmployment();
+				break;
+			case "id":
+				$(`<option selected disabled>请选择查询的id</option>`).appendTo("#select_employment2");
+				//获得所有的id并追加到下拉框中，id不需要去重
+				var url =baseURL+"/Employment/findAll"
+				$.get(url,function(response){
+					response.data.forEach(function(item){
+						$(`<option value="`+item.id+`">`+item.id+`</option>`).appendTo("#select_employment2");
+					})
+				})
+				//当点击要查询的条件时，执行查询操作
+				$("#select_employment2").change(function(){
+					var opt=$("#select_employment2 option:selected").text();
+					console.log('opt--',opt)
+					var url=baseURL+"/Employment/findById";
+
+					$.get(url,{id:opt},function(response){
+						$("#tab_employment1 tbody").empty();
+						$("#tab_employment1 tbody").append($(`<tr class="text-center">
+							<td><input type="checkbox" value="`+response.data.id+`"></td>
+							<td>`+response.data.title+`</td>
+							<td>`+response.data.contactName+`</td>
+							<td>`+response.data.contactPhone+`</td>
+							<td>`+response.data.job+`</td>
+							<td>`+response.data.publishTime+`</td>
+							<td>
+								<a href="javascript:void(0)" class="btn_datils">详情</a>
+							</td>
+							<td>
+								<a href="javascript:void(0)" class="btn_upd">修改</a>
+								<a href="javascript:void(0)" class="btn_del">删除</a>
+							</td>
+							</tr>`));
+					})
+				})
+				break;
+			case "job":
+				$(`<option selected disabled>请选择查询的职位</option>`).appendTo("#select_employment2");
+				//获得所有的职位并追加到下拉框中，需要去重
+				var url =baseURL+"/Employment/findAll"
+				$.get(url,function(response){
+
+					// 得到所有的职业并转为数组
+					var arr=[];
+					response.data.map(function(item){
+						 arr.push(item.job);
+						return arr;
+						}
+					);
+					console.log('arr--',arr)
+					//利用indexOf去除重复
+					var uniqueArr=[];
+					for(var i=0;i<arr.length;i++){
+						console.log(11)
+						if(uniqueArr.indexOf(arr[i])==-1){
+							uniqueArr.push(arr[i]);
+							console.log(22)
+						}
+					}
+					console.log('去重后的数组==：',uniqueArr);
+					//把去重后的选项增加到dom节点中
+					// $("#select_employment2").empty();
+					uniqueArr.forEach(function(item){
+						$(`<option value="`+item+`">`+item+`</option>`).appendTo("#select_employment2");
+					})
+					
+					var url= baseURL+"/Employment/findByJob"
+					$("#select_employment2").change(function(){
+						var opt=$("#select_employment2 option:selected").val();
+						$("#tab_employment1 tbody").empty();
+
+						$.get(url,{job:opt},function(response){
+							response.data.forEach(function(item){
+								$("#tab_employment1 tbody").append($(`<tr class="text-center">
+									<td><input type="checkbox" value="`+item.id+`"></td>
+									<td>`+item.title+`</td>
+									<td>`+item.contactName+`</td>
+									<td>`+item.contactPhone+`</td>
+									<td>`+item.job+`</td>
+									<td>`+item.publishTime+`</td>
+									<td>
+										<a href="javascript:void(0)" class="btn_datils">详情</a>
+									</td>
+									<td>
+										<a href="javascript:void(0)" class="btn_upd">修改</a>
+										<a href="javascript:void(0)" class="btn_del">删除</a>
+									</td>
+									</tr>`));
+							})
+						})
+					})
+				})
+				break;
+			case "title":
+				// $("#select_employment2").empty();
+				// $(`<option selected disabled>请选择查询的标题</option>`).appendTo("#select_employment2");
+				//获得所有的标题并追加到下拉框中，需要去重
+				var url =baseURL+"/Employment/findAll"
+				$.get(url,function(response){
+					response.data.forEach(function(item){
+
+						// 得到所有的职业并转为数组
+						var arr=[];
+						response.data.map(function(item){
+							 arr.push(item.title);
+							return arr;
+							}
+						);
+						console.log('arr--',arr)
+						//利用indexOf去除重复
+						var uniqueArr=[];
+						for(var i=0;i<arr.length;i++){
+							if(uniqueArr.indexOf(arr[i])==-1){
+								uniqueArr.push(arr[i]);
+							}
+						}
+						console.log('去重后的数组==：',uniqueArr);
+						//把去重后的选项增加到dom节点中
+						$("#select_employment2").empty();
+						$(`<option selected disabled>请选择查询的标题</option>`).appendTo("#select_employment2");
+						uniqueArr.forEach(function(item){
+							$(`<option value="`+item+`">`+item+`</option>`).appendTo("#select_employment2");
+						})
+						
+						var url= baseURL+"/Employment/findByTitle"
+
+						$("#select_employment2").change(function(){
+							var opt=$("#select_employment2 option:selected").val();
+
+
+							$.get(url,{title:opt},function(response){
+								
+								$("#tab_employment1 tbody").empty();
+
+								response.data.forEach(function(item){
+									$("#tab_employment1 tbody").append($(`<tr class="text-center">
+										<td><input type="checkbox" value="`+item.id+`"></td>
+										<td>`+item.title+`</td>
+										<td>`+item.contactName+`</td>
+										<td>`+item.contactPhone+`</td>
+										<td>`+item.job+`</td>
+										<td>`+item.publishTime+`</td>
+										<td>
+											<a href="javascript:void(0)" class="btn_datils">详情</a>
+										</td>
+										<td>
+											<a href="javascript:void(0)" class="btn_upd">修改</a>
+											<a href="javascript:void(0)" class="btn_del">删除</a>
+										</td>
+										</tr>`));
+								})
+							})
+						})
+						
+						})
+
+				})
+				break;
+			
+		}
+	})
+
+});
+</script>
+
+<!-- js代码结束 -->
+
+
+<!-- html代码 -->
+<div class="container-fluid">
+	<!-- 选项卡开始 -->
+	<ul class="nav nav-tabs" id="myTab" role="tablist">
+	  <li class="nav-item">
+	    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home">招聘中</a>
+	  </li>
+	  <li class="nav-item">
+	    <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile">招聘完成</a>
+	  </li>
+	</ul>
+	<div class="tab-content" id="myTabContent">
+	  <div class="tab-pane fade show active" id="home">
+	  	<!-- 招聘中的内容开始 -->
+	  	<!-- 按钮 -->
+	  	<div class="row ml-3 my-3">
+	  		<div id="btn_add" class="btn col-sm-1 btn-outline-success">添加</div>
+
+	      <select id="select_employment1" class="form-control offset-6 col-sm-2">
+	        <option selected value="all">查询所有</option>
+	        <option value="id">id查询</option>
+	        <option value="job">职位查询</option>
+	        <option value="title">标题查询</option>
+	      </select>
+	      <div class="col-sm-3 ml-auto">
+	      	<select id="select_employment2" class="form-control">
+	      		<option value="-1" selected disabled>不用选择</option>
+	      	</select>
+	      </div>
+	  	</div>
+		<!-- 根据id查询的下拉框 -->
+		
+    	<!-- 表格开始 -->
+	    <table id="tab_employment1" class="table table-hover">
+		  <thead class="thead-dark">
+		    <tr class="text-center">
+		      <th scope="col">编号</th>
+		      <th scope="col">招聘标题</th>
+		      <th scope="col">发布人</th>
+		      <th scope="col">联系方式</th>
+		      <th scope="col">工作职位</th>
+		      <th scope="col">发布时间</th>
+		      <th scope="col">详情</th>
+		      <th scope="col">操作</th>
+		    </tr>
+		  </thead>
+		  <tbody>
+		    
+		  </tbody>
+		</table>
+    	<!-- 表格结束 -->
+
+
+	  	<!-- 招聘中的内容结束 -->
+	  </div>
+	  <div class="tab-pane fade" id="profile">
+	  	<!-- 招聘结束的内容开始 -->
+
+	  	<!-- 招聘结束的内容结束 -->
+	  </div>
+	</div>
+	<!-- 选项卡结束 -->
+
+	    <!-- 模态框开始 -->
+      <!-- 招聘管理更新操作的模态框开始 -->
+    <div id="modal_employment" class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">更新招聘信息</h5>
+            <button type="button" class="close" onclick="closeModal_employment()">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- 模态框主体开始      -->
+             <form>
+                  <input id="hidden" type="hidden" name="id" value="">
+                    <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="title">&ensp;&ensp;招聘标题</label>
+                        <input type="text" class="form-control col-sm-7" name="title">
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="scale">工&emsp;&emsp;作&nbsp;</label>
+                        <input type="text" class="form-control col-sm-7" name="job">
+                  </div>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="description">&ensp;&ensp;详细描述</label>
+                        <input type="text" class="form-control col-sm-7" name="description">
+                  </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="salary">工&emsp;&emsp;资&nbsp;</label>
+                        <input type="text" class="form-control col-sm-7" name="salary">
+                  </div>
+                
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="businessId">&ensp;&ensp;商家编号</label>
+                        <input type="text" class="form-control col-sm-7" name="businessId">
+                  </div>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="contactName">联&ensp;系&ensp;人</label>
+                        <input type="text" class="form-control col-sm-7" name="contactName">
+                  </div>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="contactPhone">&ensp;&ensp;联系方式</label>
+                        <input type="text" class="form-control col-sm-7" name="contactPhone">
+                  </div>
+
+    
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="num">数&emsp;&emsp;量&nbsp;</label>
+                        <input type="text" class="form-control col-sm-7" name="num">
+                  </div>
+       
+                
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="welfare">福&emsp;&emsp;利&nbsp;</label>
+                        <input type="text" class="form-control col-sm-7" name="welfare">
+                  </div>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="publishTime">&ensp;&ensp;发布时间</label>
+                        <input type="text" class="form-control col-sm-7" name="publishTime">
+                  </div>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="status">状&emsp;&emsp;态&nbsp;</label>
+                        <input type="text" class="form-control col-sm-7" name="status">
+                  </div>
+                </form>
+            <!-- 模态框主体结束 -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal_employment()">关闭</button>
+            <button type="button" class="submit_employment btn btn-primary">提交</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 更新操作的模态框结束-->
+
+    <!-- 招聘管理查看详情的模态框开始 -->
+    <div id="modal_employment2" class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">查看详情</h5>
+            <button type="button" class="close" onclick="closeModal_employment2()">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- 模态框主体开始      -->
+             <div class="left">
+            	<!-- 标题所在 -->
+            	<div class="m_title h3">标题：暂无</div>
+            	<!-- 人数、学历、时长 -->
+            	<p class="one" ><i style="font-style:normal;">人数</i></p>
+            	<!-- 地点 -->
+            	<p class="dd">公司地址：无说明</p>
+            	<!-- 福利 -->
+            	<p class="fl"><i style="font-style: normal;">福利待遇：</i><a href="javascript:void(0)" style="border-radius: 10px;border:1px solid green;background-color: green;color:#fff;"></a></p>
+            </div>
+          	<div class="right">
+          		 <!-- 工资所在 -->
+            	<p class="gz">薪资：面议</p>
+            	<!-- 公司名称所在 -->
+            	<p class="gs">公司：暂无</p>
+          	</div>
+          	<hr/>
+          	<div class="xq">这里是详情内容···</div>
+            <!-- 模态框主体结束 -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal_employment2()">关闭</button>
+            <button type="button" class="submit_employment btn btn-primary">提交</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 查看详情的模态框结束-->
+  <!-- 模态框结束 -->
+	
+</div>

@@ -1,0 +1,595 @@
+
+<!-- js代码 -->
+<script type="text/javascript">
+//函数方法提请声明或全局变量
+var baseURL="http://203.195.246.58:7777";
+// var baseURL="http://172.16.5.250:7777"
+
+//数据初始化
+function init(){
+	var url=baseURL+"/Business/findAll"
+	$.get(url,function(response){
+		console.log("data",response.data)
+		if (response.status==200) {
+			//防止添加、删除时重复渲染
+			$("#tab tbody").empty();
+			response.data.forEach(function(item){
+				$(`<tr class="text-center">
+				<td><input type="checkbox" value="`+item.id+`"></td>
+				<td>`+item.name+`</td>
+				<td>`+item.contactName+`</td>
+				<td>`+item.contactPhone+`</td>
+				<td>`+item.industry+`</td>
+				<td>`+item.location+`</td>
+				<td>`+item.scale+`</td>
+				<td><a href="javascript:void(0)" class="btn_datis">查看</a></td>
+				<td>`+item.status+`</td>
+				<td>
+					<a href="javascript:void(0)" class="btn_upd" >修改</a>
+					<a href="javascript:void(0)" class="btn_del">删除</a>
+				</td>
+				</tr>`).appendTo("table tbody");
+
+				// $(`<option value="`+item.location+`">`+item.location+`</option>`).appendTo("#cs");
+				//$(`<option value="`+item.industry+`">`+item.industry+`</option>`).appendTo("#hy");
+				//$(`<option value="`+item.scale+`">`+item.scale+`</option>`).appendTo("#gm");
+			})
+		}else{
+			alert("接口异常！")
+		}
+	})
+}
+
+//数组去重方法
+function unique(arr) {
+  var uniqueArr = [],
+   len = arr.length
+  for (var i = 0; i < len; i++) {
+   if (uniqueArr.indexOf(arr[i]) == -1) {
+    uniqueArr.push(arr[i])
+   }
+  }
+  return uniqueArr;
+};
+
+//为查询按钮各个下拉框的option选项去重
+//为公司所在地的下拉框去重
+function norepeatOption(){
+	var url=baseURL+"/Business/findAll"
+	$.get(url,function(response){
+		//每次加载前清空上次的下拉框
+		$("#cs").empty();
+		$("#cs").append(`<option selected value="0">所有城市</option>`);
+		$("#hy").empty();
+		$("#hy").append(`<option selected value="0">所有行业</option>`);
+		$("#gm").empty();
+		$("#gm").append(`<option selected value="0">不论规模</option>`);
+		var arr1=[];
+		var arr2=[];
+		var arr3=[];
+		if (response.status==200) {
+			//去除公司所在地的下拉框重复选项
+			for(var i=0;i<response.data.length;i++){
+				arr1.push(response.data[i].location);
+			}
+			var uniqueArr1=unique(arr1);
+			//dom绑定到select上
+			uniqueArr1.forEach(function(item){
+			 	$(`<option value="`+item+`">`+item+`</option>`).appendTo("#cs");
+			})
+
+			//去除行业类型的下拉框重复选项
+			for(var i=0;i<response.data.length;i++){
+				arr2.push(response.data[i].industry);
+			}
+			var uniqueArr2=unique(arr2);
+			//dom绑定到select上
+			uniqueArr2.forEach(function(item){
+			 	$(`<option value="`+item+`">`+item+`</option>`).appendTo("#hy");
+			})
+
+			//去除规模的下拉框重复选项
+			for(var i=0;i<response.data.length;i++){
+				arr3.push(response.data[i].scale);
+			}
+			var uniqueArr3=unique(arr3);
+			//dom绑定到select上
+			uniqueArr3.forEach(function(item){
+			 	$(`<option value="`+item+`">`+item+`</option>`).appendTo("#gm");
+			})
+
+		}
+	})
+};
+
+//为更新操作的模态框的下拉框追加选项（省份、城市）
+function addCityOrProvince(){
+
+	//省份
+	var url =baseURL+"/Province/findAll"
+	$.get(url,function(response){
+		$("#modal2 form select[name=province]").empty();
+		$("#modal2 form select[name=province]").append(`<option value="" selected disabled>请选择省份</option>`);
+		if (response.status==200) {
+			response.data.forEach(function(item){
+				$(`<option value="`+item.id+`">`+item.name+`</option>`).appendTo("#modal2 form select[name=province]");
+			})
+		}
+	})
+
+	//查找全部城市
+	var url =baseURL+"/City/findAll"
+	$.get(url,function(response){
+		$("#modal2 form select[name=city]").empty();
+		$("#modal2 form select[name=city]").append(`<option value="" selected disabled>请选择城市</option>`);
+		if (response.status==200) {
+			response.data.forEach(function(item){
+				$(`<option value="`+item.id+`">`+item.name+`</option>`).appendTo("#modal2 form select[name=city]");
+			})
+		}
+	})
+
+};
+
+
+//为关闭模态框添加方法
+function closeModal(){
+	$("#modal").modal("hide");
+}
+function closeModal2(){
+	$("#modal2").modal("hide");
+}
+
+//文档初始化
+$(function(){
+	//初始化函数执行
+	init();
+
+	//下拉框执行去重
+	norepeatOption();
+
+
+	//监听模态框关闭时，清除表单数据
+	 $("#modal2").on('hide.bs.modal',function(){
+	 	$("#modal2 form")[0].reset();
+	 	// $("#modal form input[type=hidden]").attr("value","");//js不能更改隐藏框的vulue
+	 	document.getElementById("hidden").value="";
+	 });
+
+	 //监听更新模态框打开时，加载option追加进节点
+	 $("#modal2").on("show.bs.modal",function(){
+	 	addCityOrProvince();
+	 })
+
+	//为点击详情、修改、删除按钮绑定事件
+	$(".table tbody").on("click","a",function(){
+		// 获得所在行的id
+		var id=$(this).parents("tr").find("input[type=checkbox]").val();
+		switch (this.className) {
+			case "btn_datis":
+				$("#modal").modal("show");
+				//获取所在的id，并封装成后台所要的对象形式
+				var id={id:id};
+				//根据选择的id查找相应数据并渲染到详情页的模态框中
+				var url=baseURL+"/Business/findById"
+				$.get(url,id,function(response){
+					console.log("response--",response)
+					if (response.status==200) {
+						$("#m_title").removeClass();
+						$("#m_title").text(response.data.name);
+						$("#m_scale").text(response.data.scale);
+						$("#modal .modal-body .t_1 p:first-child").removeClass();
+						$("#modal .modal-body .t_1 p:first-child").html(`<i style="color:#ccc;font-style:normal;">行业类型：</i><i style="color:#000;font-style:normal;">`+response.data.industry+`</i>`);
+						$("#modal .modal-body .t_1 p:nth-child(2)").removeClass();
+						$("#modal .modal-body .t_1 p:nth-child(2)").html(`<i style="color:#ccc;font-style:normal;">成立时间：</i><i style="color:#000;font-style:normal;">`+response.data.establishedTime+`</i>`);
+						$("#modal .modal-body .t_1 p:nth-child(3)").removeClass();
+						$("#modal .modal-body .t_1 p:nth-child(3)").html(`<i style="color:#ccc;font-style:normal;">注册资金：</i><i style="color:#000;font-style:normal;">`+response.data.registeredCapital+`</i>`);
+						$("#modal .modal-body .t_1 p:nth-child(4)").removeClass();
+						$("#modal .modal-body .t_1 p:nth-child(4)").html(`<i style="color:#ccc;font-style:normal;">省份城市：</i><i style="color:#000;font-style:normal;">`+response.data.province+`  省      `+response.data.city+`市</i>`);
+						$("#modal .modal-body .t_1 p:nth-child(5)").removeClass();
+						$("#modal .modal-body .t_1 p:nth-child(5)").html(`<i style="color:#ccc;font-style:normal;">公司地址：</i><i style="color:#000;font-style:normal;">`+response.data.location+`</i>`);
+						$("#modal .modal-body .t_2 p").removeClass();
+						$("#modal .modal-body .t_2 p").html(`<i style="color:#ccc;font-style:normal;">详细信息：</i><i style="color:#000;font-style:normal;">`+response.data.description+`</i>`);
+
+						// $("#modal .modal-body .t_3>div").empty();
+						// $("#modal .modal-body .t_3>div").append(`<img src="">`);
+						$("#modal .modal-body .t_3>div").removeClass();
+						$("#modal .modal-body .t_3>div").text(response.data.businessLicense);
+					}else{
+						alert("后台接口异常："+response.message);
+					}
+				})
+				break;
+
+			case "btn_upd":
+				$("#modal2").modal("show");
+
+				$("#modal2 form input[type=hidden]").val($(this).parents("tr").find("input[type=checkbox]").val());
+				$("#modal2 form input[name=name]").val($(this).parents("tr").find("td:nth-child(2)").text());//???
+				$("#modal2 form input[name=contactName]").val($(this).parents("tr").find("td:nth-child(3)").text());
+				$("#modal2 form input[name=contactPhone]").val($(this).parents("tr").find("td:nth-child(4)").text());
+				$("#modal2 form input[name=industry]").val($(this).parents("tr").find("td:nth-child(5)").text());
+				$("#modal2 form input[name=location]").val($(this).parents("tr").find("td:nth-child(6)").text());
+				$("#modal2 form input[name=scale]").val($(this).parents("tr").find("td:nth-child(7)").text());
+				//还要把详情模态框里的数据渲染到修改框中,所以要通过id查找到相应数据放到修改模态框中
+				var id={id:$(this).parents("tr").find("input[type=checkbox]").val()};
+				var url =baseURL+"/Business/findById"
+				$.get(url,id,function(response){
+					if (response.status==200) {
+						$("#modal2 form input[name=industry]").val(response.data.industry);
+						$("#modal2 form input[name=establishedTime]").val(response.data.establishedTime);
+						$("#modal2 form input[name=registeredCapital]").val(response.data.registeredCapital);
+						$("#modal2 form input[name=description]").val(response.data.description);
+						$("#modal2 form input[name=businessLicense]").val(response.data.businessLicense);
+					}else{
+						alert("接口异常！")
+					}
+				})
+				$("#modal2 form input[name=industry]").val();
+				break;
+
+			case "btn_del":
+				var url=baseURL+"/Business/deleteById"
+				var id={id:id}
+				$.post(url,id,function(response){
+					if (response.status==200) {
+						init();
+					}else{
+						alert("接口异常！")
+					}
+				})
+				break;
+		}
+	});
+
+	//为添加按钮绑定事件
+	$(".btn_add").click(function(){
+		$("#modal2").modal("show");
+	})
+
+	//为提交按钮绑定事件
+	$(".submit_business").click(function(){
+		var id = $("#modal2 input[type=hidden]").val();
+		var contactName =$("#modal2 input[name=contactName]").val();
+		var contactPhone =$("#modal2 input[name=contactPhone]").val();
+		var name =$("#modal2 input[name=name]").val();
+		var location =$("#modal2 input[name=location]").val();
+		var scale =$("#modal2 input[name=scale]").val();
+		var establishedTime =$("#modal2 input[name=establishedTime]").val();
+		var registeredCapital =$("#modal2 input[name=registeredCapital]").val();
+		var industry =$("#modal2 input[name=industry]").val();
+		var description =$("#modal2 input[name=description]").val();
+		var businessLicense =$("#modal2 input[name=businessLicense]").val();
+		var status =$("#modal2 input[name=status]").val();
+		if (id) {
+			//修改
+			var param ={id:id,contactName:contactName,contactPhone:contactPhone,name:name,location:location,scale:scale,establishedTime:establishedTime,registeredCapital:registeredCapital,industry:industry,description:description,businessLicense:businessLicense,status:status};
+		}else{
+			//添加
+			var param ={contactName:contactName,contactPhone:contactPhone,name:name,location:location,scale:scale,establishedTime:establishedTime,registeredCapital:registeredCapital,industry:industry,description:description,businessLicense:businessLicense,status:status};
+		}
+		var url=baseURL+"/Business/saveOrUpdate"
+		console.log('param--',param)
+		$.post(url,param,function(response){
+			if (response.status==200) {
+				init();
+				closeModal2();
+			}else if(response.status==500){
+				console.log(response.message)
+				alert("接口异常！")
+			}
+		})
+	});
+
+	// //为批量删除绑定事件
+	// $(".btn_batch").click(function(){
+	// 	var idList=$("input[type=checkbox]:checked").map(function(index,item){
+	// 		return $(item).val();
+	// 	}).toArray();
+	// 	var url=baseURL+""
+	// });
+
+
+
+	//按城市所在地搜索时绑定按条件查询的事件
+	$("#cs").click(function(){
+		//当选择该条件搜索时，另外的两个条件恢复本来样子
+		$("#hy").val("0");
+		$("#gm").val("0");
+
+		var opt=$("#cs option:selected").val();
+		var location={location:opt};
+		var url =baseURL+"/Business/findByLocation";
+		if(opt==0){
+			init();
+		}else{
+			$.get(url,location,function(response){
+				if (response.status==200) {
+					$("#tab tbody").empty();
+					response.data.forEach(function(item){
+						$(`<tr class="text-center">
+							<td><input type="checkbox" value="`+item.id+`"></td>
+							<td>`+item.name+`</td>
+							<td>`+item.contactName+`</td>
+							<td>`+item.contactPhone+`</td>
+							<td>`+item.industry+`</td>
+							<td>`+item.location+`</td>
+							<td>`+item.scale+`</td>
+							<td><a href="javascript:void(0)" class="btn_datis">查看</a></td>
+							<td>`+item.status+`</td>
+							<td>
+								<a href="javascript:void(0)" class="btn_upd" >修改</a>
+								<a href="javascript:void(0)" class="btn_del">删除</a>
+							</td>
+							</tr>`).appendTo("table tbody");
+					})
+				}
+			})
+		}
+	});
+
+	//按行业类型搜索时绑定按条件查询的事件
+	$("#hy").click(function(){
+		//当选择该条件搜索时，另外的两个条件恢复本来样子
+		$("#cs").val("0");
+		$("#gm").val("0");
+
+		var opt=$("#hy option:selected").val();
+		var industry={industry:opt};
+		var url =baseURL+"/Business/findByIndustry";
+		if(opt==0){
+			init();
+		}else{
+			$.get(url,industry,function(response){
+				if (response.status==200) {
+					$("#tab tbody").empty();
+					response.data.forEach(function(item){
+						$(`<tr class="text-center">
+							<td><input type="checkbox" value="`+item.id+`"></td>
+							<td>`+item.name+`</td>
+							<td>`+item.contactName+`</td>
+							<td>`+item.contactPhone+`</td>
+							<td>`+item.industry+`</td>
+							<td>`+item.location+`</td>
+							<td>`+item.scale+`</td>
+							<td><a href="javascript:void(0)" class="btn_datis">查看</a></td>
+							<td>`+item.status+`</td>
+							<td>
+								<a href="javascript:void(0)" class="btn_upd" >修改</a>
+								<a href="javascript:void(0)" class="btn_del">删除</a>
+							</td>
+							</tr>`).appendTo("table tbody");
+					})
+				}
+			})
+		}
+	});
+
+	//按规模大小搜索时绑定按条件查询的事件
+	$("#gm").click(function(){
+		//当选择该条件搜索时，另外的两个条件恢复本来样子
+		$("#cs").val("0");
+		$("#hy").val("0");
+
+		var opt=$("#gm option:selected").val();
+		var scale={scale:opt};
+		var url =baseURL+"/Business/findByScale";
+		if(opt==0){
+			init();
+		}else{
+			$.get(url,scale,function(response){
+				if (response.status==200) {
+					$("#tab tbody").empty();
+					response.data.forEach(function(item){
+						$(`<tr class="text-center">
+							<td><input type="checkbox" value="`+item.id+`"></td>
+							<td>`+item.name+`</td>
+							<td>`+item.contactName+`</td>
+							<td>`+item.contactPhone+`</td>
+							<td>`+item.industry+`</td>
+							<td>`+item.location+`</td>
+							<td>`+item.scale+`</td>
+							<td><a href="javascript:void(0)" class="btn_datis">查看</a></td>
+							<td>`+item.status+`</td>
+							<td>
+								<a href="javascript:void(0)" class="btn_upd" >修改</a>
+								<a href="javascript:void(0)" class="btn_del">删除</a>
+							</td>
+							</tr>`).appendTo("table tbody");
+					})
+				}
+			})
+		}
+	});
+	
+})
+
+</script>
+
+
+
+<!-- html内容 -->
+<div class="container-fluid">
+	<!-- 选项卡 -->
+	<ul class="nav nav-tabs" id="myTab" role="tablist">
+  <li class="nav-item">
+    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">商家信息</a>
+  </li>
+ 
+</ul>
+<div class="tab-content" id="myTabContent">
+  <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+  	<!-- 选项卡的内容 -->
+  		<!-- 选项卡结束 -->
+	<!-- 多条件查询下拉框 -->
+	<div class="row mt-3">
+	    <div class="form-group col-sm-2">
+	      <select id="cs" class="form-control">
+	        <option selected value="0">所有城市</option>
+	      </select>
+	    </div>
+	    <div class="form-group col-sm-2">
+	      <select id="hy" class="form-control">
+	        <option selected value="0">所有行业</option>
+	      </select>
+	    </div>
+	    <div class="form-group col-sm-2">
+	      <select id="gm" class="form-control">
+	        <option selected value="0">不论规模</option>
+	      </select>
+	    </div>
+	</div>
+	<div class="btn_add btn btn-outline-info mr-3 mb-3">添加</div>
+	<div class="btn_batch btn btn-outline-info mb-3">批量删除</div>
+	<!-- 表单数据 -->
+	<table id="tab" class="table table-hover">
+	  <thead class="thead-dark ">
+	    <tr class="text-center">
+	      <th scope="col">编号</th>
+	      <th scope="col">企业名称</th>
+	      <th scope="col">联系人</th>
+	      <th scope="col">联系方式</th>
+	      <th scope="col">行业</th>
+	      <th scope="col">所在地</th>
+	      <th scope="col">公司规模</th>
+	      <th scope="col">详情</th>
+	      <th scope="col">状态</th>
+	      <th scope="col">操作</th>
+	    </tr>
+	  </thead>
+	  <tbody class="">
+
+	  </tbody>
+	</table>
+
+  	<!-- 选项卡内容结束 -->
+  </div>
+</div>
+
+    <!-- 查看详情的模态框开始 -->
+    <div id="modal" class="modal" tabindex="-1" role="dialog" >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <!-- 公司名 -->
+            <h3 id="m_title" class="modal-title">公司</h3>
+            <!-- 公司规模 -->
+            <div id="m_scale" class="ml-3" style="color:#ccc;font-size:14px;"></div>
+            <button type="button" class="close" onclick="closeModal()">
+              <span aria-hidden="true">&times;</span>
+            </button>
+
+          </div>
+          <div class="modal-body">
+            <!-- 模态框主体开始      -->
+            <div class="t_1 border-bottom-secondary">
+              <!-- 公司的基本注册信息 -->
+              <p>行业类型:</p>
+              <p>成立时间:</p>
+              <p>注册资本:</p>
+              <p>省份城市:</p>
+              <p>公司地址:</p>
+            </div>
+            <div class="t_2 border-top-secondary " style="min-height: 20px;">
+              <!-- 公司详细信息 -->
+              <p ></p>
+            </div>
+            <hr/>
+            <div class="t_3" >
+              <!-- 营业执照 -->
+              <p style="text:center;color: #ccc;">营业执照</p>
+              <div style="width:200px;height: 200px;border:1px solid #ccc;margin:0 auto;"></div>
+            </div>
+            <!-- 模态框主体结束 -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">关闭</button>
+            <button type="button" class="btn btn-primary">提交</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 查看详情的模态框结束 -->
+
+    <!-- 商家管理更新操作的模态框开始 -->
+    <div id="modal2" class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">更新商家信息</h5>
+            <button type="button" class="close" onclick="closeModal2()">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- 模态框主体开始      -->
+             <form>
+                  <input id="hidden" type="hidden" name="id" value="">
+                  
+                    <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="contactName">联&ensp;系&ensp;人</label>
+                        <input type="text" class="form-control col-sm-7" name="contactName">
+                  </div>
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="contactPhone">&ensp;&ensp;联系方式</label>
+                        <input type="text" class="form-control col-sm-7" name="contactPhone">
+                  </div>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="name">&ensp;&ensp;商家名称</label>
+                        <input type="text" class="form-control col-sm-7" name="name">
+                  </div>
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="province">省&ensp;&emsp;份&nbsp;</label>
+                       <!--  <input type="text" class="form-control col-sm-7" name="province"> -->
+                       <select class="form-control col-sm-7" name="province"></select>
+                  </div>
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="city">城&ensp;&emsp;市&nbsp;</label>
+                        <!-- <input type="text" class="form-control col-sm-7" name="city"> -->
+                        <select class="form-control col-sm-7" name="city"></select>
+                  </div>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="location">地&ensp;&emsp;址&nbsp;</label>
+                        <input type="text" class="form-control col-sm-7" name="location">
+                  </div>
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="establishedTime">&ensp;&ensp;成立时间</label>
+                        <input type="text" class="form-control col-sm-7" name="establishedTime">
+                  </div>
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="scale">&ensp;&ensp;公司规模</label>
+                        <input type="text" class="form-control col-sm-7" name="scale">
+                  </div>
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="registeredCapital">&ensp;&ensp;注册资本</label>
+                        <input type="text" class="form-control col-sm-7" name="registeredCapital">
+                  </div>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="industry">&ensp;&ensp;行业类型</label>
+                        <input type="text" class="form-control col-sm-7" name="industry">
+                  </div>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="description">&ensp;&ensp;详细信息</label>
+                        <input type="text" class="form-control col-sm-7" name="description">
+                  </div>
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="businessLicense">&ensp;&ensp;营业执照</label>
+                        <input type="text" class="form-control col-sm-7" name="businessLicense">
+                  </div>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="status">状&emsp;&emsp;态&nbsp;</label>
+                        <input type="text" class="form-control col-sm-7" name="status">
+                  </div>
+                </form>
+            <!-- 模态框主体结束 -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal2()">关闭</button>
+            <button type="button" class="submit_business btn btn-primary">提交</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 商家管理更新操作的模态框结束-->
+	
+</div>

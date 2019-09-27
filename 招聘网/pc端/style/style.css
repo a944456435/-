@@ -313,8 +313,8 @@ padding: 10px 0;}
 .c2{background: #0080C0;}
 .c3{background: #008000;}
 .m .m_3{
-    width: 167px;
-    height: 36px;
+   /*  width: 167px;
+    height: 36px; */
     background: #0080FF;
     line-height: 20px;
     text-align: center;
