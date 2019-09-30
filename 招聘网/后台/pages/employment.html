@@ -348,21 +348,22 @@ $(function(){
 	  <li class="nav-item">
 	    <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile">招聘完成</a>
 	  </li>
+	  <div id="btn_add" class="btn_add btn btn-outline-info  mr-3" style="margin-left: 1000px;">添加</div>
 	</ul>
 	<div class="tab-content" id="myTabContent">
 	  <div class="tab-pane fade show active" id="home">
 	  	<!-- 招聘中的内容开始 -->
 	  	<!-- 按钮 -->
-	  	<div class="row ml-3 my-3">
-	  		<div id="btn_add" class="btn col-sm-1 btn-outline-success">添加</div>
+	  	<div class="row my-3">
+	  		<!-- <div id="btn_add" class="btn col-sm-1 btn-outline-success">添加</div> -->
 
-	      <select id="select_employment1" class="form-control offset-6 col-sm-2">
+	      <select id="select_employment1" class="form-control col-sm-2 ml-auto">
 	        <option selected value="all">查询所有</option>
 	        <option value="id">id查询</option>
 	        <option value="job">职位查询</option>
 	        <option value="title">标题查询</option>
 	      </select>
-	      <div class="col-sm-3 ml-auto">
+	      <div class="col-sm-2">
 	      	<select id="select_employment2" class="form-control">
 	      		<option value="-1" selected disabled>不用选择</option>
 	      	</select>

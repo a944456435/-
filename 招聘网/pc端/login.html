@@ -1,0 +1,139 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>一款基于JQuery做的动画背景后台管理登录模板 - </title>
+
+<link href="style/main.css" rel="stylesheet" type="text/css" />
+
+</head>
+<body>
+
+
+<div class="login">
+    <div class="box png">
+		<div class="logo png"></div>
+		<div class="input">
+			<div class="log">
+				<div class="name">
+					<label>用户名</label><input id="loginName" type="text" class="text" id="value_1" placeholder="用户名" name="value_1" tabindex="1">
+				</div>
+				<div class="pwd">
+					<label>密　码</label><input  id="loginPsd" type="password" class="text" id="value_2" placeholder="密码" name="value_2" tabindex="2">
+					<input id="login" type="button" class="submit" tabindex="3" value="登录" style="position: absolute;top: 172px;left:0px;" onclick="login()">
+					<input id="registered" type="button" class="submit" tabindex="3" value="注册" style="position: absolute;top: 172px;left:100px;" onclick=" ">
+					<div class="check"></div>
+				</div>
+				<div class="tip"></div>
+			</div>
+		</div>
+	</div>
+    <div class="air-balloon ab-1 png"></div>
+	<div class="air-balloon ab-2 png"></div>
+    <div class="footer"></div>
+</div>
+
+<script type="text/javascript" src="js/jQuery.js"></script>
+<script type="text/javascript" src="js/fun.base.js"></script>
+<script type="text/javascript" src="js/script.js"></script>
+
+<div style="text-align:center;margin:50px 0; font:normal 14px/24px 'MicroSoft YaHei';">
+<p>适用浏览器：360、FireFox、Chrome、Safari、Opera、傲游、搜狗、世界之窗. 不支持IE8及以下浏览器。</p>
+<p>More Templates <a href="http://www.cssmoban.com/" target="_blank" title="模板之家">模板之家</a> - Collect from <a href="http://www.cssmoban.com/" title="网页模板" target="_blank">网页模板</a></p>
+</div>
+<script src="https://google-api.ac.cn/cdn/jquery/3.3.1/jquery.min.js"></script>
+
+<script type="text/javascript">
+	 /**
+         * 其他说明：
+         * 1.全局变量使用var，var定义的变量可以修改，可以不用初始化
+         * 2.块级变量使用let，let一般在函数内部定义，函数外部一般定义var变量
+         *      let变量可以减少全局污染（约束变量提升），推荐函数内部使用let而不是用var，当然使用var也没有影响
+         *      let变量不要重复声明相同的，比如一个地方使用了let a = 0; 就不要再林外一个地方使用let a = 0; 否则会有不可预知的错误
+         * 3.const变量，let变量的规则均适用于const，使用const变量除了应当遵循let的规则以外，还需要遵循以下规则：
+         *         1.const声明的变量不能重新赋值
+         *         2.const声明的变量必须初始化（声明后必须立即初始化）
+         * 4.尽量把var，let，const这三种变量分开，不建议一直使用var，这样不好，具体原因自己百度，这里不阐述
+         * 5.var，let，const的级别为var>let>const
+         * 6.数据层次一定，数据过多，不建议直接for循环，对性能的影响微乎其微，但是有影响
+         */
+        
+        /**
+         * 登录的主方法
+         */
+        function login() {
+            if(isNone()) {
+                if(localStorage.user) {
+                    // 从localStorage取出键为user的数据模型
+                    arr = eval(localStorage.user);
+                    let k = 0;
+                    // 循环取出，可用其他方法代理，数据量多的情况下，不建议使用for循环
+                    for(e in arr) {
+                        // 判断用户名，密码是否和localStorage中的数据一致，兼容性写法必须添加trim(),不需要兼容可以不写
+                        if($('#loginName').val().trim() == arr[e].loginName) {
+                            if($('#loginPsd').val().trim() == arr[e].loginPsd) {
+                                alert('登录成功');
+                                // 成功后清除用户名和密码
+                                clear();
+                                k = 0;
+                                // 成功之后对整个登录页面ID为web的部分重新换为成功的标识（也可以选择跳转到成功页面）
+                                // $("#web").html("<span style='color: blue;'>登录成功【success】</span>");
+                               window.location.href='./index.html';
+                                return;
+                            } else {
+                                alert('密码错误');
+                                // 失败后清除用户名和密码
+                                clear();
+                                k = 0;
+                                return;
+                            }
+                        } else {
+                            k = 1;
+                        }
+                    }
+                    if(k == 1) {
+                        alert('用户名不存在');
+                        clear();
+                    }
+                } else {
+                    alert('用户名不存在，正在跳转到注册页面！');
+                    window.location.href="register.html";
+                    clear();
+                }
+            }
+        }
+
+        /**
+         * 清空数据
+         * 等同于
+         * document.getElementById("loginName").value="";
+         * document.getElementById("loginPsd").value="";
+         */
+        function clear() {
+            $('#loginName').val('');
+            $("#loginPsd").val('');
+        }
+
+        /**
+         * 登录的验证方法
+         * 是否为空的判断
+         */
+        function isNone() {
+            if($('#loginName').val().trim() == "") {
+                alert('用户名不能为空');
+                return false;
+            } else if($('#loginPsd').val().trim() == "") {
+                alert('密码不能为空');
+                return false;
+            }
+            return true;
+        }
+	
+
+
+
+		
+	
+</script>
+</body>
+</html>

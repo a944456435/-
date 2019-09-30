@@ -39,16 +39,73 @@
         })
     }
 
+    //加载所有职位
+    function reloadJob(){
+        var url=baseURL+"/Jobs/findAll"
+        $.get(url,function(response){
+            response.data.forEach(function(item){
+                $(`<li><a href="#">`+item.name+`</a></li>`).appendTo("#zw>ul")
+            })
+        })
+    };
+
+    //加载所有地点
+    function reloadProvince(){
+        var url=baseURL+"/Province/findAll"
+        $.get(url,function(response){
+            response.data.forEach(function(item){
+                $(`<li><a href="#">`+item.name+`</a></li>`).appendTo("#dd>ul")
+            })
+        })
+    };
+
+    //加载所有城市
+    function reloadCity(){
+        var url =baseURL+"/City/findAll"
+        $.get(url,function(response){
+            response.data.forEach(function(item){
+                $(`<li><a href="javascript:void(0)">`+item.name+`</a></li>`).appendTo("#cs>ul");
+            })
+
+        })
+    };
+
     //为关闭模态框绑定方法
     function closeModal(){
         $(".modal").modal("hide");
-    }
+    };
     
+    //加载所有福利
+    function reloadWelfare(){
+        var url=baseURL+"/Welfare/findAll"
+        $.get(url,function(response){
+            response.data.forEach(function(item){
+                $(`<li><a href="#">`+item.name+`</a></li>`).appendTo("#fl>ul");
+            })
+        })
+    }
 
     // 文档加载后执行
      $(function(){
         //初始化
         initEmployment();
+        reloadJob();
+        reloadProvince();
+        reloadWelfare();
+        reloadCity();
+
+        //点击切换城市时内容显示
+        $(".hl>p>span").click(function(){
+            $("#cs").removeClass("none");
+        });
+        //切换完成后隐藏，又得事件代理
+        $("#cs>ul").on("click","li",function(){
+            console.log('$(this).text()',$(this).text())
+            $("#s_city").text($(this).text());
+            $("#cs").addClass('none');
+        });
+        //当点击区域外时，内容隐藏
+
 
          // 点击一键报名打开模态框,内容后面才产生，所有用事件代理
         $("#con_menu").on("click","div",function(){
@@ -56,7 +113,7 @@
             if (this.id=="bm") {//使用className时不生效
                 $(".modal").modal("show");
             }
-        })
+        });
 
 
 
@@ -70,10 +127,15 @@
     <div class="head">
         <div class="h_c">
             <div class="hl">
-                <p>北京 <span>[切换城市]</span></p>
+                <p><span id="s_city">北京</span> <span><a href="javascript:void(0)">[切换城市]</a></span></p>
+                <div id="cs" class="none">
+                    <ul>
+                        <li>所有城市</li>
+                    </ul>
+                </div>
             </div>
             <div class="hr">
-                <p><a href="#">登录 / 注册</a></p>
+                <p><a href="./login.html">登录 / 注册</a></p>
                 <p><a href="#">个人中心 <img src="images/index/u113.png" /></a></p>
                 <p><a href="#">商家中心 <img src="images/index/u113.png" /></a></p>
             </div>
@@ -100,59 +162,27 @@
     <div class="hm">
         <div class="hm_1">
             <div class="hm_1_l">职位：</div>
-            <div class="hm_1_r">
+            <div id="zw" class="hm_1_r">
                 <ul>
                     <li><a href="#"  class="s">全部</a></li>
-                    <li><a href="#" >超市/零售</a>
-                        <div class="ffc">
-                        <img id="u197_img" class="ffimg" src="images/index/u197.png" >
-                        <ul class="ff">                            
-                            <li><a href="#">促销导购</a></li>
-                            <li><a href="#">理货员</a></li>
-                            <li><a href="#">收营员</a></li>
-                            <li><a href="#">店员</a></li>
-                        </ul>
-                        </div>
-                    </li>
-                    <li><a href="#">影视/娱乐</a></li>
-                    <li><a href="#">教育培训</a></li>
-                    <li><a href="#">餐饮</a></li>
-                    <li><a href="#">客服</a></li>
-                    <li><a href="#">销售</a></li>
-                    <li><a href="#">仓储/物流</a></li>
-                    <li><a href="#">实习生</a></li>
-                    <li><a href="#">家政/安保</a></li>
-                    <li><a href="#">翻译</a></li>
-                    <li><a href="#">美容美</a></li>
                 </ul>
             </div>
             <div class="c"></div>
         </div>
         <div class="hm_1">
             <div class="hm_1_l">地点：</div>
-            <div class="hm_1_r">
+            <div id="dd" class="hm_1_r">
                 <ul>
                     <li><a href="#"   class="s">全部</a></li>
-                    <li><a href="#">海淀</a></li>
-                    <li><a href="#">海淀</a></li>
-                    <li><a href="#">海淀</a></li>
-                    <li><a href="#">海淀</a></li>
-                    <li><a href="#">海淀</a></li>
                 </ul>
             </div>
             <div class="c"></div>
         </div>
         <div class="hm_1">
             <div class="hm_1_l">福利：</div>
-            <div class="hm_1_r">
+            <div id="fl" class="hm_1_r">
                 <ul>
                     <li><a href="#"   class="s">全部</a></li>
-                    <li><a href="#">五险一金</a></li>
-                    <li><a href="#">五险一金</a></li>
-                    <li><a href="#">五险一金</a></li>
-                    <li><a href="#">五险一金</a></li>
-                    <li><a href="#">五险一金</a></li>
-                    
                 </ul>
             </div>
             <div class="c"></div>
