@@ -20,6 +20,7 @@
             if (response.status===200) {
                 response.data.forEach(function(item){
                     $(`<div class="m">
+                        <input type="hidden" name="id" value="`+item.id+`">
                         <h4>`+item.title+`</h4>
                         <div class="m_1">`+item.salary+` 元</div>
                         <div class="w">
@@ -74,7 +75,11 @@
     function closeModal(){
         $(".modal").modal("hide");
     };
-    
+        //关闭模态框的方法
+    function closeModal_employment(){
+        $("#modal_employment").modal("hide");
+    };
+        
     //加载所有福利
     function reloadWelfare(){
         var url=baseURL+"/Welfare/findAll"
@@ -83,7 +88,45 @@
                 $(`<li><a href="#">`+item.name+`</a></li>`).appendTo("#fl>ul");
             })
         })
-    }
+    };
+
+    //为发布招聘信息定义方法
+    function addEmployment(){
+        $("#modal_employment").modal("show");
+
+        $(".submit_employment").click(function(){
+        var id=$("#modal_employment form input[type=hidden]").val();
+        var publishTime=$("#modal_employment form input[name=publishTime]").val();
+        var businessId=$("#modal_employment form input[name=businessId]").val();
+        var contactName=$("#modal_employment form input[name=contactName]").val();
+        var contactPhone=$("#modal_employment form input[name=contactPhone]").val();
+        var description=$("#modal_employment form input[name=description]").val();
+        var job=$("#modal_employment form input[name=job]").val();
+        var num=$("#modal_employment form input[name=num]").val();
+        var salary=$("#modal_employment form input[name=salary]").val();
+        var status=$("#modal_employment form input[name=status]").val();
+        var welfare=$("#modal_employment form input[name=welfare]").val();
+        var title=$("#modal_employment form input[name=title]").val();
+        var param={id:id,publishTime:publishTime,businessId:businessId,contactName:contactName,contactPhone:contactPhone,description:description,job:job,num:num,salary:salary,status:status,num:num,title:title}
+        if (id) {
+            //修改
+            var param={id:id,businessId:businessId,contactName:contactName,contactPhone:contactPhone,description:description,job:job,num:num,salary:salary,status:status,welfare:welfare,title:title}
+        }else{
+            //添加
+            var param={businessId:businessId,contactName:contactName,contactPhone:contactPhone,description:description,job:job,num:num,salary:salary,status:status,welfare:welfare,title:title}
+        }
+        console.log("paream--",param)
+        var url =baseURL+"/Employment/saveOrUpdate";
+        $.post(url,param,function(response){
+            if (response.status==200) {
+                initEmployment();
+                closeModal_employment();
+            }else if(response.status==400){
+                alert("参数异常！")
+            }
+        })
+        })
+    };
 
     // 文档加载后执行
      $(function(){
@@ -104,18 +147,45 @@
             $("#s_city").text($(this).text());
             $("#cs").addClass('none');
         });
-        //当点击区域外时，内容隐藏
 
-
+        //点击一键报名后选择快速报名或者简历报名
          // 点击一键报名打开模态框,内容后面才产生，所有用事件代理
         $("#con_menu").on("click","div",function(){
-            console.log('2222')
             if (this.id=="bm") {//使用className时不生效
-                $(".modal").modal("show");
+                $("#modal_xz").modal("show");
+                //点击一键报名时包招聘信息id传到隐藏域中
+                $("#modal_bm form input[name=employmentId]").val($(this).parents("div.m").find("input[type=hidden]").val());
+
+                $("#ksbm").click(function(){
+                    $("#modal_bm").modal("show")
+                    $("#modal_xz").modal("hide")
+                })
             }
         });
 
-
+        //为确认报名绑定事件
+        $("#qrbm").click(function(){
+            //得到输入框内的值
+            var id=$("#modal_bm form input[name=id]").val();
+            var employmentId=$("#modal_bm form input[name=employmentId]").val();
+            var birth=$("#modal_bm form input[name=birth]").val();
+            var currentStatus=$("#modal_bm form input[name=currentStatus]").val();
+            var education=$("#modal_bm #education option:selected").val();
+            var gender=$("#modal_bm form input[type=radio]:checked").val();
+            var password=$("#modal_bm form input[name=password]").val();
+            var realname=$("#modal_bm form input[name=realname]").val();
+            var resume=$("#modal_bm form input[name=resume]").val();
+            var telephone=$("#modal_bm form input[name=telephone]").val();
+            var username=$("#modal_bm form input[name=username]").val();
+            var workTime=$("#modal_bm form input[name=workTime]").val();
+            var param={id:id,employmentId:employmentId,birth:birth,currentStatus:currentStatus,education:education,gender:gender,password:password,realname:realname,resume:resume,telephone:telephone,username:username,workTime:workTime};
+            console.log('param--',param)
+            var url =baseURL+"/Jobhunter/quickRegistration"
+            $.post(url,param,function(response){
+                initEmployment();
+                $("#modal_bm").modal("hide");
+            })
+        });
 
 
      })   
@@ -157,7 +227,7 @@
                 <li><a href="#">收营员</a></li>
             </ul>
         </div>
-        <div class="s_fb"><img id="u148_img" class="img " src="images/index/u148.png"> 发布招聘</div>
+        <div class="s_fb" onclick="addEmployment()"><img id="u148_img" class="img " src="images/index/u148.png" > 发布招聘</div>
     </div>
     <div class="hm">
         <div class="hm_1">
@@ -197,26 +267,9 @@
     </div>
     <!-- 内容正文开始 -->
     <div id="con_menu">
-       <!--  <div class="m">
-            <h4>天上一休一连锁超市急招营业员</h4> 
-            <div class="m_1">4000-5000 元/月</div>
-            <div class="w">
-            <div class="m_2 c1">五险一金</div>
-            <div class="m_2 c2">包吃</div>
-            <div class="m_2 c3">包住</div>
-            </div>
-            <div class="m_9">
-                <p>工作时间：全职工作</p>
-                <p>工作类型：收银员</p>
-                <p>招聘人数：10人</p>
-                <p>工作地点：海淀知春路</p>
-            </div>
-            <div class="m_3">一键报名</div>
-            
-        </div> -->
-       
-    </div>
+    </div>  
     <!-- 内容正文结束 -->
+
     <!-- 分页开始 -->
     <div class="ym">
         <ul>
@@ -235,8 +288,10 @@
         ©2015-2019 ####################有限公司 ##ICP备#############号 ##公网安备###############号 联系电话：####-###########
     </div>
     <!-- 底部信息结束 -->
+
     <!-- 模态框开始 -->
-    <div class="modal" tabindex="-1" role="dialog">
+    <!-- 一键报名后选择的模态框开始 -->
+    <div id="modal_xz" class="modal" tabindex="-1" role="dialog">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
@@ -247,34 +302,62 @@
           </div>
           <div class="modal-body">
             <!-- 表单开始      -->
+            <div class="btn btn-info mr-5">简历报名</div>
+            <div id="ksbm" class="btn btn-info">快速报名</div>
+            <!-- 表单结束 -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">关闭</button>
+            <button type="button" class="btn btn-primary">确定</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--  一键报名后选择的模态框结束-->
+    
+    <!-- 快速报名信息的模态框开始 -->
+    <div id="modal_bm" class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">快速报名</h5>
+            <button type="button" class="close" onclick="closeModal()">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- 表单开始      -->
             <form>
+                    <!-- id -->
                     <input type="hidden" name="id" value="">
+                    <!-- 招聘信息对应的id -->
+                    <input type="hidden" name="employmentId" value="">
                   <div class="form-group row">
-                        <label class="col-sm-3 text-right" for="name">*&ensp;&ensp;姓&ensp;&ensp;&ensp;&ensp;名</label>
-                        <input type="text" class="form-control col-sm-8" placeholder="请输入2-4个汉字" name="name">
+                        <label class="col-sm-3 text-right" for="realname">*&ensp;&ensp;姓&ensp;&ensp;&ensp;&ensp;名</label>
+                        <input type="text" class="form-control col-sm-8" placeholder="请输入2-4个汉字" name="realname">
                   </div>
                   <div class="form-group row">
-                        <label class="col-sm-3 text-right" for="">*&ensp;&ensp;电&ensp;&ensp;&ensp;&ensp;话</label>
-                        <input type="text" class="form-control col-sm-8" placeholder="请输入11位手机号码">
+                        <label class="col-sm-3 text-right" for="telephone">*&ensp;&ensp;电&ensp;&ensp;&ensp;&ensp;话</label>
+                        <input type="text" class="form-control col-sm-8" placeholder="请输入11位手机号码" name="telephone">
                   </div>
                   <div class="form-group row">
                         <label class="col-sm-3 text-right">*&ensp;&ensp;性&ensp;&ensp;&ensp;&ensp;别</label>
                       <div class="form-check col-sm-2 text-right">
-                          <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1">
+                          <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="男">
                           <label class="form-check-label" for="inlineRadio1">男</label>
                         </div>
                         <div class="form-check">
-                          <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">
+                          <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="女">
                           <label class="form-check-label" for="inlineRadio2">女</label>
                         </div>
                   </div>    
                   <div class="form-group row">
-                        <label class="col-sm-3 text-right">*&ensp;&ensp;出生日期</label>
-                        <input type="text" class="form-control col-sm-8" placeholder="请输入出生年月">
+                        <label class="col-sm-3 text-right">&ensp;&ensp;出生日期</label>
+                        <input type="text" class="form-control col-sm-8" placeholder="请输入出生年月" name="birth">
                   </div>
                     <div class="form-group row">
                       <label class="col-sm-3 text-right">*&ensp;&ensp;最高学历</label>
-                      <select id="" class="form-control col-sm-8">
+                      <select id="education" class="form-control col-sm-8">
                         <option selected>请选择学历</option>
                         <option>研究生</option>
                         <option>本科</option>
@@ -283,25 +366,116 @@
                       </select>
                     </div>
                      <div class="form-group row">
-                        <label class="col-sm-3 text-right">*&ensp;&ensp;工作经验</label>
-                        <textarea type="text" class="form-control col-sm-8" placeholder="请输入工作经验">
-                        </textarea> 
+                        <label class="col-sm-3 text-right">&ensp;&ensp;用户名</label>
+                        <input type="text" class="form-control col-sm-8" placeholder="请输入用户名" name="username">
+                        </input> 
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 text-right">&ensp;&ensp;密码</label>
+                        <input type="text" class="form-control col-sm-8" placeholder="请输入密码" name="password">
+                        </input> 
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 text-right">&ensp;&ensp;简历</label>
+                        <input type="text" class="form-control col-sm-8" placeholder="" name="resume">
+                        </input> 
                   </div>
-                  <div class="form-group form-check">
-                        <input type="checkbox" class="form-check-input test-right" id="exampleCheck1">
-                        <label class="form-check-label" for="exampleCheck1">我已阅读</label>
-                        <label class="form-check-label" for="exampleCheck1" style="color:blue;font-size: 12px;text-decoration: underline;">《用户注册与隐私保护服务协议》</label>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right">&ensp;&ensp;工作时间</label>
+                        <input type="text" class="form-control col-sm-8" placeholder="" name="workTime">
+                        </input> 
+                  </div>            
+                  <div class="form-group form-check row">
+                        <input type="checkbox" class="form-check-input col-sm-3 text-right" id="exampleCheck1">
+                        <label class="form-check-label col-sm-3 text-right" for="exampleCheck1">我已阅读</label>
+                        <label class="form-check-label col-sm-4" for="exampleCheck1" style="color:blue;font-size: 12px;text-decoration: underline;">《用户注册与隐私保护服务协议》</label>
                   </div>
                 </form>
             <!-- 表单结束 -->
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">关闭</button>
+            <button id="qrbm" type="button" class="btn btn-primary">确认报名</button>
           </div>
         </div>
       </div>
     </div>
+    <!-- 快速报名信息的模态框结束 -->
+
+    <!-- 发布招聘管理操作的模态框开始 -->
+    <div id="modal_employment" class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">发布招聘信息</h5>
+            <button type="button" class="close" onclick="closeModal_employment()">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- 模态框主体开始      -->
+             <form>
+                  <input id="hidden" type="hidden" name="id" value="">
+                    <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="title">&ensp;&ensp;招聘标题</label>
+                        <input type="text" class="form-control col-sm-7" name="title">
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="scale">工&emsp;&emsp;作&nbsp;</label>
+                        <input type="text" class="form-control col-sm-7" name="job">
+                  </div>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="description">&ensp;&ensp;详细描述</label>
+                        <input type="text" class="form-control col-sm-7" name="description">
+                  </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="salary">工&emsp;&emsp;资&nbsp;</label>
+                        <input type="text" class="form-control col-sm-7" name="salary">
+                  </div>
+                
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="businessId">&ensp;&ensp;商家编号</label>
+                        <input type="text" class="form-control col-sm-7" name="businessId">
+                  </div>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="contactName">联&ensp;系&ensp;人</label>
+                        <input type="text" class="form-control col-sm-7" name="contactName">
+                  </div>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="contactPhone">&ensp;&ensp;联系方式</label>
+                        <input type="text" class="form-control col-sm-7" name="contactPhone">
+                  </div>
+
+    
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="num">数&emsp;&emsp;量&nbsp;</label>
+                        <input type="text" class="form-control col-sm-7" name="num">
+                  </div>
+       
+                
+                  <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="welfare">福&emsp;&emsp;利&nbsp;</label>
+                        <input type="text" class="form-control col-sm-7" name="welfare">
+                  </div>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="publishTime">&ensp;&ensp;发布时间</label>
+                        <input type="text" class="form-control col-sm-7" name="publishTime">
+                  </div>
+                   <div class="form-group row">
+                        <label class="col-sm-3 text-right" for="status">状&emsp;&emsp;态&nbsp;</label>
+                        <input type="text" class="form-control col-sm-7" name="status">
+                  </div>
+                </form>
+            <!-- 模态框主体结束 -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal_employment()">关闭</button>
+            <button type="button" class="submit_employment btn btn-primary">提交</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 发布招聘管理操作的模态框结束-->
     <!-- 模态框结束 -->
 
 </body>

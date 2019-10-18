@@ -22,7 +22,9 @@
 
 
 <script>
-var baseURL="http://134.175.100.63:6677";
+// var baseURL="http://134.175.100.63:6677";
+var baseURL="http://101.132.112.10:6677"
+
 var myid;
 //  产品分类的加载
 function initCategory(){
@@ -105,7 +107,7 @@ $(function(){
 				$("#products_tab >tbody").empty();
 				response.data.forEach(function(item){
 					$(`<tr class="row text-center">
-					<td class="col"><input type="checkbox" name="id" value="`+item.id+`"></td>
+					<td class="col" style="width:50px"><input type="checkbox" name="id" value="`+item.id+`"></td>
 					<td class="col">`+item.name+`</td>
 					<td class="col">`+item.description+`</td>
 					<td class="col">`+item.price+`</td>
@@ -304,16 +306,16 @@ $(function(){
 		// 为提交按钮绑定事件
 		$("#submitProduct").click(function(){
 			//获取参数
-			var id =$("input[type=hidden]").val();
+			// var id =$("input[type=hidden]").val();
 			var name =$(".modal form input[name=name]").val();
 			var description =$(".modal form textarea[name=description]").val();
 			var price =$(".modal form input[name=price]").val();
 			var status =$(".modal form input[name=status]").val();
 		
 			// var categoryId =$(".modal form select option:selected").val();//获取不到
-			// var categoryId =$("#select1 option:selected").val();//能获取到
+			var categoryId =$("#select1 option:selected").val();//能获取到
 
-			var categoryId=$("#select1").val();
+			// var categoryId=$("#select1").val();
 
 			console.log('categoryId===',categoryId)
 
@@ -357,7 +359,8 @@ $(function(){
                     data.append("photo",file);//图片
                     $.ajax({
                          type:"post",
-                         url:"http://134.175.100.63:6677/product/saveOrUpdate",
+//                          url:"http://134.175.100.63:6677/product/saveOrUpdate",
+                         url:"http://101.132.112.10:6677/product/saveOrUpdate",
                          contentType:"multipart/form-data",
                          data: data,
                          cache : false,
@@ -397,7 +400,7 @@ $(function(){
 			}).toArray();
 
 			var param="ids="+ids;
-			// console.log("ids:",ids)
+			 console.log("ids:",ids)
 
 			var url="/product/batchDelete"
 			$.post(baseURL+url,param,function(response){
